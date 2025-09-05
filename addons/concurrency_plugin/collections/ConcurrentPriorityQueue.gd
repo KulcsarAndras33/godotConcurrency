@@ -21,8 +21,10 @@ func push(value, prio : int = 50):
 	if _readers > 0:
 		await _no_readers
 	
-	var idx = _data.bsearch_custom(_data, self._compare)
-	_data.insert(idx, {VALUE_KEY: value, PRIORITY_KEY: prio})
+	var dict = {VALUE_KEY: value, PRIORITY_KEY: prio}
+	
+	var idx = _data.bsearch_custom(dict, self._compare)
+	_data.insert(idx, dict)
 	
 	_new_data.emit()
 	_write_lock.unlock()
