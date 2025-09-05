@@ -25,6 +25,9 @@ func _removeReader():
 
 func peek():
 	self._addReader()
+	if _data.is_empty():
+		return null
+	
 	var value = _data.back()
 	self._removeReader()
 	

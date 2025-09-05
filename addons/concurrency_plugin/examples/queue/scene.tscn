@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://cda6a6o36kmqb"]
+
+[ext_resource type="Script" uid="uid://b43x0jun3vgen" path="res://addons/concurrency_plugin/examples/queue/queue_example.gd" id="1_p6h5o"]
+
+[node name="QueueMain" type="Node2D"]
+script = ExtResource("1_p6h5o")

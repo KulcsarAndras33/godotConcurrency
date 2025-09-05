@@ -1,30 +1,14 @@
-extends Node
+class_name ConcurrentExample extends Node
 
 const STOP_SIGNAL = -1
 const NUMBER = 100
 
-var queue = ConcurrentQueue.new()
+var queue : ConcurrentQueue = ConcurrentQueue.new()
 
-func _ready() -> void:
-	var producers : Array[Thread] = []
-	producers.append(producer())
-	
-	var consumers : Array[Thread] = []
-	
-	consumers.append(consumer())
-	consumers.append(consumer())
-	
-	for thread in producers:
-		await thread.wait_to_finish()
-	
-	for thread in consumers:
-		queue.push(STOP_SIGNAL)
-	
-	for thread in consumers:
-		await thread.wait_to_finish()
-	
+func push_stop():
+	queue.push(STOP_SIGNAL)
 
-func producer():
+func create_producer():
 	var producer = Thread.new()
 	producer.start(self.producer_func)
 	
@@ -38,7 +22,7 @@ func producer_func():
 	
 	print("Producer finished")
 
-func consumer():
+func create_consumer():
 	var consumer = Thread.new()
 	consumer.start(self.consumer_func)
 	
