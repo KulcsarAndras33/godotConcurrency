@@ -7,6 +7,8 @@ func _ready() -> void:
 	
 	var producers : Array[Thread] = []
 	producers.append(example.create_producer())
+	producers.append(example.create_producer())
+	producers.append(example.create_producer())
 	
 	var consumers : Array[Thread] = []
 	

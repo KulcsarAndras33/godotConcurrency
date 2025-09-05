@@ -10,12 +10,13 @@ func _ready() -> void:
 	producers.append(example.create_prio_producer())
 	
 	var consumers : Array[Thread] = []
-	consumers.append(example.create_consumer(true))
+	consumers.append(example.create_consumer())
+	consumers.append(example.create_consumer())
 	
 	for thread in producers:
 		await thread.wait_to_finish()
 	
-	for thread in consumers:
+	for i in range(consumers.size() * 2):
 		example.push_stop()
 	
 	for thread in consumers:

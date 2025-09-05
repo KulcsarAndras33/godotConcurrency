@@ -14,17 +14,18 @@ func peek():
 	return value.get(VALUE_KEY)
 
 func pop():
-	return (await super.pop()).get(VALUE_KEY)
+	return super.pop().get(VALUE_KEY)
 
 func push(value, prio : int = 50):
 	_write_lock.lock()
 	if _readers > 0:
-		await _no_readers
+		_no_readers.wait()
 	
 	var dict = {VALUE_KEY: value, PRIORITY_KEY: prio}
 	
 	var idx = _data.bsearch_custom(dict, self._compare)
 	_data.insert(idx, dict)
 	
-	_new_data.emit()
+	if !_new_data.try_wait():
+		_new_data.post()
 	_write_lock.unlock()

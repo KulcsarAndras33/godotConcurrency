@@ -9,10 +9,13 @@ func _ready() -> void:
 	var thread_pool = ThreadPool.new(5)
 	
 	thread_pool.execute(example.producer_func)
+	thread_pool.execute(example.producer_func)
 	
 	thread_pool.execute(example.consumer_func)
+	thread_pool.execute(example.consumer_func)
 	
-	await await get_tree().create_timer(0.1).timeout
+	await get_tree().create_timer(0.1).timeout
+	example.push_stop()
 	example.push_stop()
 	
 	print_caller_id()

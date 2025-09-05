@@ -6,7 +6,7 @@ const NUMBER = 100
 var queue : ConcurrentPriorityQueue = ConcurrentPriorityQueue.new()
 
 func push_stop():
-	queue.push(STOP_SIGNAL)
+	queue.push(STOP_SIGNAL, -1)
 
 func create_producer():
 	var producer = Thread.new()
@@ -18,7 +18,7 @@ func producer_func():
 	for i in range(NUMBER):
 		queue.push(1)
 		
-		await get_tree().create_timer(0.0075).timeout
+		OS.delay_msec(7)
 	
 	print("Producer finished")
 
@@ -32,7 +32,7 @@ func prio_producer_func():
 	for i in range(NUMBER):
 		queue.push(i, i)
 		
-		await get_tree().create_timer(0.0075).timeout
+		OS.delay_msec(7)
 	
 	print("Producer finished")
 
@@ -47,12 +47,12 @@ func consumer_func(print : bool = false):
 	var lastData = 0
 	
 	while lastData != STOP_SIGNAL:
-		lastData = await queue.pop()
+		lastData = queue.pop()
 		count += lastData
 		
 		if print:
 			print(lastData)
 		
-		await get_tree().create_timer(0.005).timeout
+		OS.delay_msec(5)
 	
 	print("Consumer finished: %d" % count)
