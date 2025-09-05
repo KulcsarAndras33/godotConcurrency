@@ -45,7 +45,10 @@ func pop():
 	
 	return value
 
-func push(value):
+func push(value, prio : int = -1):
+	if prio != -1:
+		push_warning("Might want to use ConcurrentPriorityQueue instead")
+	
 	_write_lock.lock()
 	if _readers > 0:
 		await _no_readers
