@@ -1,13 +1,21 @@
 extends Node
 
 func _ready() -> void:
-	var chunk = Chunk.new(Vector3i(0,0,0), Vector3i(5, 3, 5))
+	var threadPool = ThreadPool.new(4)
+	var chunk_manager = ChunkManager.new(threadPool, Vector3i(5, 2, 5))
+	var chunk = Chunk.new(Vector3i(0,0,0), Vector3i(5, 2, 5))
+	var otherChunk = Chunk.new(Vector3i(1,0,0), Vector3i(5, 2, 5))
 	
-	chunk.total_transform(self.chunk_random_fill.bind([0, 1], [0.75, 0.3]))
+	chunk_manager.add_chunk(chunk)
+	chunk_manager.add_chunk(otherChunk)
+	
+	chunk_manager.total_transform(self.chunk_random_fill.bind([0], [0.75]))
+	
+	await get_tree().create_timer(1).timeout
 	
 	print_level(0, chunk)
-	print("============")
-	print_level(1, chunk)
+	print("===============")
+	print_level(0, otherChunk)
 	
 	print(chunk.get_path_between(Vector3i(0,1,0), Vector3i(4,1,4)))
 	
