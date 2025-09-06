@@ -2,9 +2,10 @@ extends Node
 
 func _ready() -> void:
 	var threadPool = ThreadPool.new(4)
-	var chunk_manager = ChunkManager.new(threadPool, Vector3i(5, 2, 5))
-	var chunk = Chunk.new(Vector3i(0,0,0), Vector3i(5, 2, 5))
-	var otherChunk = Chunk.new(Vector3i(1,0,0), Vector3i(5, 2, 5))
+	var chunk_dimensions = Vector3i(5, 2, 10)
+	var chunk_manager = ChunkManager.new(threadPool, chunk_dimensions)
+	var chunk = Chunk.new(Vector3i(0,0,0), chunk_dimensions)
+	var otherChunk = Chunk.new(Vector3i(1,0,0), chunk_dimensions)
 	
 	chunk_manager.add_chunk(chunk)
 	chunk_manager.add_chunk(otherChunk)

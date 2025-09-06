@@ -122,11 +122,36 @@ func _get_neighbors_pos_by_edge(edge : Vector3i) -> Array[Vector3i]:
 
 func _create_entrances():
 	# Check which edges have path in the neighboring chunk
+	var valid_connections = {}
 	for edge in edges.keys():
 		for neighborEdge in _get_neighbors_pos_by_edge(edge):
 			if _chunk_manager.try_global_has_edge(to_global(neighborEdge)):
-				print("bridge: %s - %s" % [to_global(edge), to_global(neighborEdge)])
+				valid_connections.set(edge, [edge, neighborEdge])
 	# Get the two edges and the middle of each consecutive entrance part
+	while !valid_connections.keys().is_empty():
+		var startKey = valid_connections.keys().back()
+		var currConnection = valid_connections.get(startKey)
+		var together = []
+		var dir = currConnection[1] - currConnection[0]
+		var buffer = [currConnection]
+		while !buffer.is_empty():
+			currConnection = buffer.pop_back()
+			together.append(currConnection)
+			valid_connections.erase(currConnection[0])
+			for from in valid_connections:
+				if (currConnection[0] - from).length() <= 1.01:
+					var connection = valid_connections.get(from)
+					if connection[1] - connection[0] == dir:
+						buffer.push_front(connection)
+		together.sort_custom(func (a, b):
+			return (b[0] - a[0]).sign().x == 1)
+		
+		var chosen = []
+		var idxs = [0, together.size() / 2, together.size() - 1]
+		for i in range(min(3, together.size())):
+			chosen.append(together[idxs[i]])
+		
+	
 	# These will be the actual entrances
 	# Do pathfinding between each of them
 	# Add to global pathfinding with weights based on the paths
