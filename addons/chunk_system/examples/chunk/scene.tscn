@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dibx6yphdjape"]
+
+[ext_resource type="Script" uid="uid://b8b5altr1v6u6" path="res://addons/chunk_system/examples/chunk/path_finding.gd" id="1_na4a5"]
+
+[node name="ChunkPathFinding" type="Node2D"]
+script = ExtResource("1_na4a5")

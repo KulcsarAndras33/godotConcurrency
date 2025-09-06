@@ -6,6 +6,7 @@ var _pathfinding : AStar3D = AStar3D.new()
 var dimensions : Vector3i
 var position : Vector3i
 var full_chunk_lock : ReadWriteLock = ReadWriteLock.new()
+var path_finding_filter : Callable = self._default_path_finding_filter
 
 func _init(position : Vector3i, dimensions : Vector3i):
 	self.position = position
@@ -43,17 +44,40 @@ func _getValVect(pos : Vector3i) -> Holder:
 	return _getVal(pos.x, pos.y, pos.z)
 
 func _get_point_id(x : int, y : int, z : int) -> int:
-	return x * dimensions.x + y * dimensions.y + z
+	return x * (dimensions.y * dimensions.z) + y * dimensions.z + z
+
+func _get_point_by_id(id : int) -> Vector3i:
+	var x : int = id / (dimensions.y * dimensions.z)
+	var rem = id % (dimensions.y * dimensions.z)
+	var y : int = rem / dimensions.z
+	var z = rem % dimensions.z
+	return Vector3i(x, y, z)
 
 # Only call from locked
 func _add_point_to_pathfinding(x : int, y : int, z : int):
 	var id = _get_point_id(x, y, z)
 	_pathfinding.add_point(id, Vector3(x, y, z))
+
+func _join_pathfinding_points():
+	for id in _pathfinding.get_point_ids():
+		var pos = _get_point_by_id(id)
+		for offset in [[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 1, 0], [0, 1, 1], [1, -1, 0], [0, -1, 1]]:
+			var otherId = _get_point_id(pos.x + offset[0], pos.y + offset[1], pos.z + offset[2])
+			if _pathfinding.has_point(otherId):
+				_pathfinding.connect_points(id, otherId, true)
+
+func _default_path_finding_filter(x : int, y : int, z : int) -> bool:
+	var val = _getVal(x, y, z)
 	
-	for offset in [[1, 0, 0], [0, 1, 0], [0, 0, 1]]:
-		var otherId = _get_point_id(x + offset[0], y + offset[0], z + offset[0])
-		if _pathfinding.has_point(otherId):
-			_pathfinding.connect_points(id, otherId)
+	if val == null:
+		var under = _getVal(x, y - 1, z)
+		if under != null && under.is_walkable:
+			return true
+	else:
+		if val.pass_through:
+			return true
+			
+	return false
 
 func _calculate_pathfinding():
 	full_chunk_lock.writeLock()
@@ -62,23 +86,25 @@ func _calculate_pathfinding():
 	for x in range(dimensions.x):
 		for y in range(dimensions.y):
 			for z in range(dimensions.z):
-				var val = _getVal(x, y, z)
-				if val == null:
-					continue
-				
-				if val.pass_through:
+				if path_finding_filter.call(x, y, z):
 					_add_point_to_pathfinding(x, y, z)
-					continue
-				
-				var under = _getVal(x, y - 1, z)
-				if under != null && under.is_walkable:
-					_add_point_to_pathfinding(x, y, z)
+	
+	_join_pathfinding_points()
 	
 	full_chunk_lock.writeUnlock()
 
 func total_transform(transformFunc : Callable):
 	full_chunk_lock.writeLock()
-	transformFunc.call()
+	transformFunc.call(self)
 	
 	_calculate_pathfinding()
 	full_chunk_lock.writeUnlock()
+
+func get_path_between(from : Vector3i, to : Vector3i):
+	var ida = _get_point_id(from.x, from.y, from.z)
+	var idb = _get_point_id(to.x, to.y, to.z)
+	
+	if !_pathfinding.has_point(ida) || !_pathfinding.has_point(idb):
+		return null
+	
+	return _pathfinding.get_point_path(ida, idb)
