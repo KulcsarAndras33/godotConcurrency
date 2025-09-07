@@ -1,8 +1,9 @@
-class_name ChunkManager extends Object
+class_name ChunkManager extends HierachicalPathfinder
 
 var _threadPool : ThreadPool
 var _chunks : Dictionary[Vector3i, Chunk] = {}
 var _dimensions : Vector3i
+var _pathfinding : HierarchicalAstar = HierarchicalAstar.new()
 
 func _init(threadPool : ThreadPool, dimensions : Vector3i) -> void:
 	self._threadPool = threadPool
@@ -82,3 +83,44 @@ func alert_neighbor_changed(changedChunk : Chunk):
 			continue
 		
 		_threadPool.execute(chunk.handle_neighbor_change, ChunkPrios.LARGE_UPDATE)
+
+# TODO SYNC
+func add_entrance(entrance : Entrance):
+	var id = entrance.get_id()
+	if _pathfinding.has_point(id):
+		return
+	
+	print("Adding entrance - from: %s to: %s" % [entrance.a, entrance.b])
+	
+	_pathfinding.add_point(id, entrance.a)
+
+# TODO SYNC
+# weights : Array of [to_id, weight]
+func set_weights(from_id : int, weights : Array):
+	for data : Array in weights:
+		if !_pathfinding.has_point(data[0]):
+			continue
+		_pathfinding.connect_points(from_id, data[0])
+		_pathfinding.set_weight(from_id, data[0], data[1])
+
+func get_path(from : Vector3i, to : Vector3i):
+	# Check if from and to are in the same chunk
+	var from_chunk = _get_chunk_by_global_pos(from)
+	var to_chunk = _get_chunk_by_global_pos(to)
+	if from_chunk == null or to_chunk == null:
+		return []
+	
+	if from_chunk == to_chunk:
+		return from_chunk.get_global_path(from, to)
+	
+	var closest_start_entrance = from_chunk.get_closest_entrance(from)
+	var closest_goal_entrance = to_chunk.get_closest_entrance(to)
+	
+	print("%s - %s" % [closest_start_entrance.a, closest_start_entrance.b])
+	print("%s - %s" % [closest_goal_entrance.a, closest_goal_entrance.b])
+	
+	print(_pathfinding.has_point(closest_start_entrance.get_id()))
+	print(_pathfinding.has_point(closest_goal_entrance.get_id()))
+	
+	return _pathfinding.get_point_path(closest_start_entrance.get_id(), closest_goal_entrance.get_id())
+	

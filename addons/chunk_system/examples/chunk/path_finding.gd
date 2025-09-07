@@ -6,9 +6,11 @@ func _ready() -> void:
 	var chunk_manager = ChunkManager.new(threadPool, chunk_dimensions)
 	var chunk = Chunk.new(Vector3i(0,0,0), chunk_dimensions)
 	var otherChunk = Chunk.new(Vector3i(1,0,0), chunk_dimensions)
+	var chunk3 = Chunk.new(Vector3i(2,0,0), chunk_dimensions)
 	
 	chunk_manager.add_chunk(chunk)
 	chunk_manager.add_chunk(otherChunk)
+	chunk_manager.add_chunk(chunk3)
 	
 	chunk_manager.total_transform(self.chunk_random_fill.bind([0], [0.75]))
 	
@@ -17,9 +19,10 @@ func _ready() -> void:
 	print_level(0, chunk)
 	print("===============")
 	print_level(0, otherChunk)
+	print("===============")
+	print_level(0, chunk3)
 	
-	print(chunk.get_path_between(Vector3i(0,1,0), Vector3i(4,1,4)))
-	
+	print(chunk_manager.get_path(Vector3i(0,1,0), Vector3i(11,1,4)))
 
 func chunk_random_fill(chunk : Chunk, levels, probs):
 	for i in range(levels.size()):
