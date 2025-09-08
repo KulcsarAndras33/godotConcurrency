@@ -22,7 +22,11 @@ func _ready() -> void:
 	print("===============")
 	print_level(0, chunk3)
 	
-	print(chunk_manager.get_path(Vector3i(0,1,0), Vector3i(11,1,4)))
+	var agent = DummyAgent.new()
+	agent.pos = Vector3i(0,1,0)
+	agent.chunk_manager = chunk_manager
+	
+	agent.get_to(Vector3i(12, 1, 7))
 
 func chunk_random_fill(chunk : Chunk, levels, probs):
 	for i in range(levels.size()):

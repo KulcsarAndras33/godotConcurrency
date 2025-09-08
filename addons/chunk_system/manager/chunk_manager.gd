@@ -3,7 +3,11 @@ class_name ChunkManager extends HierachicalPathfinder
 var _threadPool : ThreadPool
 var _chunks : Dictionary[Vector3i, Chunk] = {}
 var _dimensions : Vector3i
-var _pathfinding : HierarchicalAstar = HierarchicalAstar.new()
+var _pathfinding : AStar3D = AStar3D.new()
+var _abstract_pf : HierarchicalAstar = HierarchicalAstar.new()
+
+var pathfinding_lock : ReadWriteLock = ReadWriteLock.new()
+var abstract_pf_lock : ReadWriteLock = ReadWriteLock.new()
 
 func _init(threadPool : ThreadPool, dimensions : Vector3i) -> void:
 	self._threadPool = threadPool
@@ -84,43 +88,90 @@ func alert_neighbor_changed(changedChunk : Chunk):
 		
 		_threadPool.execute(chunk.handle_neighbor_change, ChunkPrios.LARGE_UPDATE)
 
-# TODO SYNC
 func add_entrance(entrance : Entrance):
+	abstract_pf_lock.write_lock()
 	var id = entrance.get_id()
-	if _pathfinding.has_point(id):
+	if _abstract_pf.has_point(id):
 		return
 	
 	print("Adding entrance - from: %s to: %s" % [entrance.a, entrance.b])
 	
-	_pathfinding.add_point(id, entrance.a)
+	_abstract_pf.add_point(id, entrance.a)
+	abstract_pf_lock.write_unlock()
+	
+	pathfinding_lock.write_lock()
+	var ida = ChunkUtil.get_point_id(entrance.a, _dimensions)
+	var idb = ChunkUtil.get_point_id(entrance.b, _dimensions)
+	_pathfinding.add_point(ida, entrance.a)
+	_pathfinding.add_point(idb, entrance.b)
+	_pathfinding.connect_points(ida, idb)
+	pathfinding_lock.write_unlock()
+	
 
-# TODO SYNC
 # weights : Array of [to_id, weight]
 func set_weights(from_id : int, weights : Array):
+	abstract_pf_lock.write_lock()
 	for data : Array in weights:
-		if !_pathfinding.has_point(data[0]):
+		if !_abstract_pf.has_point(data[0]):
 			continue
-		_pathfinding.connect_points(from_id, data[0])
-		_pathfinding.set_weight(from_id, data[0], data[1])
+		_abstract_pf.connect_points(from_id, data[0])
+		_abstract_pf.set_weight(from_id, data[0], data[1])
+	abstract_pf_lock.write_unlock()
 
-func get_path(from : Vector3i, to : Vector3i):
+func set_points(chunk : Chunk, points : Array):
+	pathfinding_lock.write_lock()
+	ChunkUtil.remove_chunk_from_pathfinding(chunk, _pathfinding)
+	
+	for point : Vector3i in points:
+		var id = ChunkUtil.get_point_id(point, _dimensions)
+		_pathfinding.add_point(id, point)
+	
+	join_points(chunk, points)
+	pathfinding_lock.write_unlock()
+
+func join_points(chunk : Chunk, points : Array):
+	for pos in points:
+		var id = ChunkUtil.get_point_id(pos, chunk.dimensions)
+		for offset in [[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 1, 0], [0, 1, 1], [1, -1, 0], [0, -1, 1]]:
+			var otherId = ChunkUtil.get_point_id(Vector3i(pos.x + offset[0], pos.y + offset[1], pos.z + offset[2]), chunk.dimensions)
+			if _pathfinding.has_point(otherId):
+				_pathfinding.connect_points(id, otherId, true)
+
+func get_abstract_path(from : Vector3i, to : Vector3i) -> Array:
 	# Check if from and to are in the same chunk
 	var from_chunk = _get_chunk_by_global_pos(from)
 	var to_chunk = _get_chunk_by_global_pos(to)
+	var from_id = ChunkUtil.get_point_id(from, _dimensions)
+	var to_id = ChunkUtil.get_point_id(to, _dimensions)
 	if from_chunk == null or to_chunk == null:
 		return []
 	
-	if from_chunk == to_chunk:
-		return from_chunk.get_global_path(from, to)
+	if from_chunk == to_chunk or (from_chunk.position - to_chunk.position).length() == 1:
+		return []
 	
-	var closest_start_entrance = from_chunk.get_closest_entrance(from)
-	var closest_goal_entrance = to_chunk.get_closest_entrance(to)
+	var abstract_start = _abstract_pf.get_closest_point(from)
+	var abstract_end = _abstract_pf.get_closest_point(to)
 	
-	print("%s - %s" % [closest_start_entrance.a, closest_start_entrance.b])
-	print("%s - %s" % [closest_goal_entrance.a, closest_goal_entrance.b])
+	return _abstract_pf.get_point_path(abstract_start, abstract_end)
+
+func get_path(from : Vector3i, to : Vector3i):
+	print("Trying to get path from %s to %s" % [from, to])
+	var from_id = ChunkUtil.get_point_id(from, _dimensions)
+	var to_id = ChunkUtil.get_point_id(to, _dimensions)
+	if !_pathfinding.has_point(from_id) or !_pathfinding.has_point(to_id):
+		return []
 	
-	print(_pathfinding.has_point(closest_start_entrance.get_id()))
-	print(_pathfinding.has_point(closest_goal_entrance.get_id()))
+	return _pathfinding.get_point_path(from_id, to_id, true)
+
+# Get path in current chunk + 1
+func get_partial_path(from : Vector3i, to : Vector3i):
+	print("Getting partial path")
+	var from_chunk = _get_chunk_by_global_pos(from)
+	var path = get_path(from, to)
+	var partial = []
+	for pos in path:
+		partial.append(pos)
+		if !from_chunk._is_in_global_bounds(pos):
+			break
 	
-	return _pathfinding.get_point_path(closest_start_entrance.get_id(), closest_goal_entrance.get_id())
-	
+	return partial

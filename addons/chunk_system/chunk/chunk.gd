@@ -1,7 +1,6 @@
 class_name Chunk extends HierachicalPathfinder
 
 var _data : Array
-var _pathfinding : AStar3D = AStar3D.new()
 var _chunk_manager : ChunkManager = null
 var _entrances : Dictionary[int, Entrance] = {}
 
@@ -33,6 +32,19 @@ func _is_on_edge(x : int, y : int, z : int) -> bool:
 	
 	return false
 
+func _is_global_in_bounds_by_id(id : int) -> bool:
+	var pos = ChunkUtil.get_point_by_id(id, dimensions)
+	var localPos = from_global(pos)
+	return _isInBounds(localPos.x, localPos.y, localPos.z)
+
+func _is_in_bounds_by_id(id : int) -> bool:
+	var pos = ChunkUtil.get_point_by_id(id, dimensions)
+	return _isInBounds(pos.x, pos.y, pos.z)
+
+func _is_in_global_bounds(pos : Vector3i) -> bool:
+	pos = from_global(pos)
+	return _isInBounds(pos.x, pos.y, pos.z)
+
 func _isInBounds(x : int, y : int, z : int) -> bool:
 	if x < 0 || y < 0 || z < 0:
 		return false
@@ -55,31 +67,6 @@ func _getVal(x : int, y : int, z :int) -> Holder:
 func _getValVect(pos : Vector3i) -> Holder:
 	return _getVal(pos.x, pos.y, pos.z)
 
-func _get_point_id(x : int, y : int, z : int) -> int:
-	return x * (dimensions.y * dimensions.z) + y * dimensions.z + z
-
-func _get_point_by_id(id : int) -> Vector3i:
-	var x : int = id / (dimensions.y * dimensions.z)
-	var rem = id % (dimensions.y * dimensions.z)
-	var y : int = rem / dimensions.z
-	var z = rem % dimensions.z
-	return Vector3i(x, y, z)
-
-# Only call from locked
-func _add_point_to_pathfinding(x : int, y : int, z : int):
-	var id = _get_point_id(x, y, z)
-	_pathfinding.add_point(id, Vector3(x, y, z))
-	if _is_on_edge(x, y, z):
-		edges.set(Vector3i(x, y, z), false)
-
-func _join_pathfinding_points():
-	for id in _pathfinding.get_point_ids():
-		var pos = _get_point_by_id(id)
-		for offset in [[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 1, 0], [0, 1, 1], [1, -1, 0], [0, -1, 1]]:
-			var otherId = _get_point_id(pos.x + offset[0], pos.y + offset[1], pos.z + offset[2])
-			if _pathfinding.has_point(otherId):
-				_pathfinding.connect_points(id, otherId, true)
-
 func _default_path_finding_filter(x : int, y : int, z : int) -> bool:
 	var val = _getVal(x, y, z)
 	
@@ -95,16 +82,19 @@ func _default_path_finding_filter(x : int, y : int, z : int) -> bool:
 
 func _calculate_pathfinding():
 	full_chunk_lock.write_lock()
-	_pathfinding.clear()
 	
+	var global_points : Array[Vector3i] = []
 	for x in range(dimensions.x):
 		for y in range(dimensions.y):
 			for z in range(dimensions.z):
 				if path_finding_filter.call(x, y, z):
-					_add_point_to_pathfinding(x, y, z)
+					var point = Vector3i(x, y, z)
+					global_points.append(to_global(point))
+					if _is_on_edge(x, y, z):
+						edges.set(point, false)
 	
-	_join_pathfinding_points()
-	_create_entrances()
+	_chunk_manager.set_points(self, global_points)
+	# _create_entrances()
 	
 	full_chunk_lock.write_unlock()
 
@@ -176,13 +166,15 @@ func _create_entrances():
 	for new_id in entrance_ids_to_add:
 		# Get distances to each different Entrance in new_entrances
 		var curr_entrance = new_entrances.get(new_id)
-		var distances = _flood_fill_paths(curr_entrance.from)
+		_chunk_manager.pathfinding_lock.read_lock()
+		var distances = ChunkUtil.flood_fill(self, _chunk_manager._pathfinding, ChunkUtil.get_point_id(curr_entrance.from, dimensions))
+		_chunk_manager.pathfinding_lock.read_unlock()
 		var data = [Entrance.new(to_global(curr_entrance.a), to_global(curr_entrance.b)), []]
 		for other_id in new_entrances:
 			if other_id == new_id:
 				continue
 			var other_entrance = new_entrances.get(other_id)
-			var dist = distances.get(_get_point_id(other_entrance.from.x, other_entrance.from.y, other_entrance.from.z))
+			var dist = distances.get(ChunkUtil.get_point_id(other_entrance.from, dimensions))
 			if dist != null:
 				data[1].append([other_id, dist])
 		data_to_add.append(data)
@@ -190,59 +182,20 @@ func _create_entrances():
 	# Add to global pathfinding with weights based on the paths
 	for data in data_to_add:
 		_chunk_manager.add_entrance(data[0])
+	for data in data_to_add:
 		_chunk_manager.set_weights(data[0].get_id(), data[1])
 	
 	_entrances = new_entrances
-
-func _flood_fill_paths(startPos : Vector3i, stop_condition : Callable = func (a): false):
-	var startId = _get_point_id(startPos.x, startPos.y, startPos.z)
-	if !_pathfinding.has_point(startId):
-		push_warning("Flood fill start point is not in graph!")
-		return null
-	
-	var distances = {}
-	
-	var buffer = [startId]
-	var visited = {}
-	distances.set(startId, 0)
-	while !buffer.is_empty():
-		var curr = buffer.pop_front()
-		var currDist = distances.get(curr)
-		if stop_condition.call(curr):
-			return distances
-		for neighbor in _pathfinding.get_point_connections(curr):
-			if !visited.get(neighbor, false) and !buffer.has(neighbor):
-				buffer.push_back(neighbor)
-				distances.set(neighbor, currDist + 1) # This will be just an estimation
-		
-		visited.set(curr, true)
-	
-	return distances
 
 func total_transform(transformFunc : Callable):
 	full_chunk_lock.write_lock()
 	transformFunc.call(self)
 	
 	_calculate_pathfinding()
+	_create_entrances()
 	full_chunk_lock.write_unlock()
 	
 	_chunk_manager.alert_neighbor_changed(self)
-
-func get_global_path(from : Vector3i, to : Vector3i):
-	var path = get_path(from_global(from), from_global(to))
-	if path == null:
-		return null
-	
-	return (path as Array).map(func (pos): return to_global(pos))
-
-func get_path(from : Vector3i, to : Vector3i):
-	var ida = _get_point_id(from.x, from.y, from.z)
-	var idb = _get_point_id(to.x, to.y, to.z)
-	
-	if !_pathfinding.has_point(ida) || !_pathfinding.has_point(idb):
-		return null
-	
-	return _pathfinding.get_point_path(ida, idb)
 
 func add_manager(manager : ChunkManager):
 	_chunk_manager = manager
@@ -256,18 +209,6 @@ func from_global(pos : Vector3i) -> Vector3i:
 	return result
 
 func handle_neighbor_change():
+	full_chunk_lock.write_lock()
 	_create_entrances()
-
-func get_closest_entrance(pos : Vector3i) -> Entrance:
-	pos = from_global(pos)
-	var closest = []
-	_flood_fill_paths(pos, func (currPos):
-		return _entrances.values().any(func (entrance): 
-			if entrance.from == _get_point_by_id(currPos):
-				closest.append(entrance)
-				return true))
-	
-	if closest.is_empty():
-		return null
-	
-	return Entrance.new(to_global(closest[0].a), to_global(closest[0].b))
+	full_chunk_lock.write_unlock()
