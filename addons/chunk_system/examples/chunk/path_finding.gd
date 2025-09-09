@@ -15,6 +15,7 @@ func _ready() -> void:
 	chunk_manager.total_transform(self.chunk_random_fill.bind([0], [0.75]))
 	
 	await get_tree().create_timer(1).timeout
+	await threadPool.shutdown()
 	
 	print_level(0, chunk)
 	print("===============")
@@ -35,6 +36,7 @@ func chunk_random_fill(chunk : Chunk, levels, probs):
 			for z in range(chunk.dimensions.z):
 				if randf() < probs[i]:
 					chunk._data[x][y][z] = Holder.new()
+		chunk._data[0][i][0] = Holder.new()
 
 func print_level(y : int, chunk : Chunk):
 	for x in range(chunk.dimensions.x):

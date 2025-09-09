@@ -6,15 +6,15 @@ var _dimensions : Vector3i
 var _pathfinding : AStar3D = AStar3D.new()
 var _abstract_pf : HierarchicalAstar = HierarchicalAstar.new()
 
-var pathfinding_lock : ReadWriteLock = ReadWriteLock.new()
-var abstract_pf_lock : ReadWriteLock = ReadWriteLock.new()
+var pathfinding_lock : ReadWriteLock = ReadWriteLock.new().set_name("pathfinding")
+var abstract_pf_lock : ReadWriteLock = ReadWriteLock.new().set_name("abstract")
 
 func _init(threadPool : ThreadPool, dimensions : Vector3i) -> void:
 	self._threadPool = threadPool
 	self._dimensions = dimensions
 
 func _get_chunk_by_global_pos(pos : Vector3i) -> Chunk:
-	var chunk_pos = pos / _dimensions
+	var chunk_pos : Vector3i = pos / _dimensions
 	if pos.x < 0: chunk_pos.x -= 1
 	if pos.y < 0: chunk_pos.y -= 1
 	if pos.z < 0: chunk_pos.z -= 1
@@ -71,8 +71,7 @@ func try_global_has_edge(pos : Vector3i) -> bool:
 	
 	var in_chunk_pos = pos % _dimensions
 	
-	if !chunk.full_chunk_lock.try_read_lock():
-		return false
+	chunk.full_chunk_lock.read_lock()
 	
 	var result = chunk.edges.has(in_chunk_pos)
 	chunk.full_chunk_lock.read_unlock()
@@ -92,11 +91,18 @@ func add_entrance(entrance : Entrance):
 	abstract_pf_lock.write_lock()
 	var id = entrance.get_id()
 	if _abstract_pf.has_point(id):
+		abstract_pf_lock.write_unlock()
 		return
 	
 	print("Adding entrance - from: %s to: %s" % [entrance.a, entrance.b])
 	
 	_abstract_pf.add_point(id, entrance.a)
+	var other_id = entrance.get_reverse_id()
+	if !_abstract_pf.has_point(other_id):
+		_abstract_pf.add_point(other_id, entrance.b)
+		_abstract_pf.connect_points(id, other_id)
+		_abstract_pf.set_weight(id, other_id, 1)
+		_abstract_pf.set_weight(other_id, id, 1)
 	abstract_pf_lock.write_unlock()
 	
 	pathfinding_lock.write_lock()
@@ -110,12 +116,15 @@ func add_entrance(entrance : Entrance):
 
 # weights : Array of [to_id, weight]
 func set_weights(from_id : int, weights : Array):
+	print("SETTING WEIGHTS")
+	print(weights)
 	abstract_pf_lock.write_lock()
 	for data : Array in weights:
+		_abstract_pf.set_weight(from_id, data[0], data[1])
 		if !_abstract_pf.has_point(data[0]):
 			continue
+		print("Connecting - from: %s to: %s" % [_abstract_pf.get_point_position(from_id), _abstract_pf.get_point_position(data[0])])
 		_abstract_pf.connect_points(from_id, data[0])
-		_abstract_pf.set_weight(from_id, data[0], data[1])
 	abstract_pf_lock.write_unlock()
 
 func set_points(chunk : Chunk, points : Array):
@@ -133,11 +142,18 @@ func join_points(chunk : Chunk, points : Array):
 	for pos in points:
 		var id = ChunkUtil.get_point_id(pos, chunk.dimensions)
 		for offset in [[1, 0, 0], [0, 1, 0], [0, 0, 1], [1, 1, 0], [0, 1, 1], [1, -1, 0], [0, -1, 1]]:
+			if pos.z + offset[2] == _dimensions.z:
+				continue
 			var otherId = ChunkUtil.get_point_id(Vector3i(pos.x + offset[0], pos.y + offset[1], pos.z + offset[2]), chunk.dimensions)
 			if _pathfinding.has_point(otherId):
+				var a = ChunkUtil.get_point_by_id(id, _dimensions)
+				var b = ChunkUtil.get_point_by_id(otherId, _dimensions)
+				if (a - b).length() > 1.5:
+					push_error("Connecting %s to %s with length greater than 1.5%" % [a, b])
 				_pathfinding.connect_points(id, otherId, true)
 
 func get_abstract_path(from : Vector3i, to : Vector3i) -> Array:
+	print("Getting abstract path from %s to %s" % [from, to])
 	# Check if from and to are in the same chunk
 	var from_chunk = _get_chunk_by_global_pos(from)
 	var to_chunk = _get_chunk_by_global_pos(to)
@@ -151,6 +167,9 @@ func get_abstract_path(from : Vector3i, to : Vector3i) -> Array:
 	
 	var abstract_start = _abstract_pf.get_closest_point(from)
 	var abstract_end = _abstract_pf.get_closest_point(to)
+	print("Found abstract start and goal: from %s to %s" % [_abstract_pf.get_point_position(abstract_start), _abstract_pf.get_point_position(abstract_end)])
+	print("Start connections: %s" % _abstract_pf.get_point_connections(abstract_start))
+	print("Goal connections: %s" % _abstract_pf.get_point_connections(abstract_end))
 	
 	return _abstract_pf.get_point_path(abstract_start, abstract_end)
 

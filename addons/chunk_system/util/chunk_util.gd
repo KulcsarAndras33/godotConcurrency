@@ -21,7 +21,10 @@ static func compare_vectors(a : Vector3i, b : Vector3i) -> bool:
 	return false
 
 static func get_point_id(point: Vector3i, dim : Vector3i) -> int:
-	return point.x * (dim.y * dim.z) + point.y * dim.z + point.z
+	if point.z == dim.z:
+		push_error("Getting id of invalid point: %s" % point)
+	
+	return point.x * (dim.y * dim.z) + point.y * dim.z + point.z 
 
 static func get_point_by_id(id : int, dim : Vector3i) -> Vector3i:
 	var x : int = id / (dim.y * dim.z)
@@ -31,6 +34,7 @@ static func get_point_by_id(id : int, dim : Vector3i) -> Vector3i:
 	return Vector3i(x, y, z)
 
 # TAKE CARE OF LOCKING!
+# THIS ONLY WORKS IF WHOLE CHUNK IS CONNECTED!
 static func remove_chunk_from_pathfinding(chunk : Chunk, pf : AStar3D):
 	var closest = pf.get_closest_point(chunk.to_global(chunk.dimensions / 2))
 	if !chunk._is_global_in_bounds_by_id(closest):
@@ -42,6 +46,7 @@ static func remove_chunk_from_pathfinding(chunk : Chunk, pf : AStar3D):
 
 static func flood_fill(chunk : Chunk, pf : AStar3D, start : int) -> Dictionary:
 	if !pf.has_point(start):
+		print("Flood fill error: %s" % ChunkUtil.get_point_by_id(start, chunk.dimensions))
 		push_error("Starting flood fill with nonexistent point id.")
 		return {}
 	
@@ -52,7 +57,7 @@ static func flood_fill(chunk : Chunk, pf : AStar3D, start : int) -> Dictionary:
 		var curr = buffer.pop_back()
 		var dist = distances.get(curr)
 		for neighbor in pf.get_point_connections(curr):
-			if chunk._is_in_bounds_by_id(curr) and !visited.has(neighbor) and !buffer.has(neighbor):
+			if chunk._is_global_in_bounds_by_id(curr) and !visited.has(neighbor) and !buffer.has(neighbor):
 				buffer.push_front(neighbor)
 				distances.set(neighbor, dist + 1)
 		visited.set(curr, true)

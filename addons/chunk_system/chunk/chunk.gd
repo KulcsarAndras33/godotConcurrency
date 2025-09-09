@@ -13,6 +13,7 @@ var edges : Dictionary = {}
 func _init(position : Vector3i, dimensions : Vector3i):
 	self.position = position
 	self.dimensions = dimensions
+	full_chunk_lock.set_name("Chunk %s" % position)
 	_init_data(dimensions)
 
 func _init_data(dimensions : Vector3i):
@@ -27,7 +28,7 @@ func _is_on_edge(x : int, y : int, z : int) -> bool:
 	if x == 0 || y == 0 || z == 0:
 		return true
 	
-	if x == dimensions.x - 1 || y == dimensions.y - 1 || z == dimensions.z - 1:
+	if x == dimensions.x - 1 || z == dimensions.z - 1:
 		return true
 	
 	return false
@@ -93,8 +94,9 @@ func _calculate_pathfinding():
 					if _is_on_edge(x, y, z):
 						edges.set(point, false)
 	
+	print("Edges: %s" % edges)
+	
 	_chunk_manager.set_points(self, global_points)
-	# _create_entrances()
 	
 	full_chunk_lock.write_unlock()
 
@@ -167,16 +169,17 @@ func _create_entrances():
 		# Get distances to each different Entrance in new_entrances
 		var curr_entrance = new_entrances.get(new_id)
 		_chunk_manager.pathfinding_lock.read_lock()
-		var distances = ChunkUtil.flood_fill(self, _chunk_manager._pathfinding, ChunkUtil.get_point_id(curr_entrance.from, dimensions))
+		var distances = ChunkUtil.flood_fill(self, _chunk_manager._pathfinding, ChunkUtil.get_point_id(to_global(curr_entrance.from), dimensions))
 		_chunk_manager.pathfinding_lock.read_unlock()
 		var data = [Entrance.new(to_global(curr_entrance.a), to_global(curr_entrance.b)), []]
 		for other_id in new_entrances:
 			if other_id == new_id:
 				continue
 			var other_entrance = new_entrances.get(other_id)
-			var dist = distances.get(ChunkUtil.get_point_id(other_entrance.from, dimensions))
+			var other_global_entrance = Entrance.new(to_global(other_entrance.a), to_global(other_entrance.b))
+			var dist = distances.get(ChunkUtil.get_point_id(to_global(other_entrance.from), dimensions))
 			if dist != null:
-				data[1].append([other_id, dist])
+				data[1].append([other_global_entrance.get_id(), dist])
 		data_to_add.append(data)
 	
 	# Add to global pathfinding with weights based on the paths
@@ -192,8 +195,8 @@ func total_transform(transformFunc : Callable):
 	transformFunc.call(self)
 	
 	_calculate_pathfinding()
-	_create_entrances()
 	full_chunk_lock.write_unlock()
+	_create_entrances()
 	
 	_chunk_manager.alert_neighbor_changed(self)
 
@@ -209,6 +212,4 @@ func from_global(pos : Vector3i) -> Vector3i:
 	return result
 
 func handle_neighbor_change():
-	full_chunk_lock.write_lock()
 	_create_entrances()
-	full_chunk_lock.write_unlock()

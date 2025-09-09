@@ -5,9 +5,11 @@ var chunk_manager : ChunkManager
 
 func get_to(to : Vector3i):
 	var abstract = chunk_manager.get_abstract_path(pos, to)
-	while abstract.size() > 1:
+	print(abstract)
+	while abstract.size() > 2:
 		print(abstract)
-		traverse(chunk_manager.get_partial_path(pos, abstract[1]))
+		traverse(chunk_manager.get_partial_path(pos, abstract[2]))
+		abstract.pop_front()
 		abstract.pop_front()
 	
 	traverse(chunk_manager.get_path(pos, to))
