@@ -1,6 +1,27 @@
-[gd_scene load_steps=2 format=3 uid="uid://dibx6yphdjape"]
+[gd_scene load_steps=6 format=3 uid="uid://dibx6yphdjape"]
 
 [ext_resource type="Script" uid="uid://b8b5altr1v6u6" path="res://addons/chunk_system/examples/chunk/path_finding.gd" id="1_na4a5"]
+[ext_resource type="Script" uid="uid://dyp40ltvnv5ad" path="res://addons/chunk_system/chunk/visual/naive_chunk_visualizer.gd" id="2_d4hu8"]
+[ext_resource type="Script" uid="uid://d1yj5smlo3ab2" path="res://addons/chunk_system/examples/chunk/dummy_agent.gd" id="3_j80ko"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ghpmm"]
+albedo_color = Color(0.641662, 0.251176, 0.161793, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_340uq"]
+material = SubResource("StandardMaterial3D_ghpmm")
 
 [node name="ChunkPathFinding" type="Node2D"]
 script = ExtResource("1_na4a5")
+
+[node name="Visualizer" type="Node" parent="."]
+script = ExtResource("2_d4hu8")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 32.4604, 29.4734, 16.212)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.663861, 0.747856, 0, -0.747856, 0.663861, 0, 10.4381, 0)
+
+[node name="Agent" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_340uq")
+script = ExtResource("3_j80ko")

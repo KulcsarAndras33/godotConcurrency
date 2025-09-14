@@ -116,14 +116,11 @@ func add_entrance(entrance : Entrance):
 
 # weights : Array of [to_id, weight]
 func set_weights(from_id : int, weights : Array):
-	print("SETTING WEIGHTS")
-	print(weights)
 	abstract_pf_lock.write_lock()
 	for data : Array in weights:
 		_abstract_pf.set_weight(from_id, data[0], data[1])
 		if !_abstract_pf.has_point(data[0]):
 			continue
-		print("Connecting - from: %s to: %s" % [_abstract_pf.get_point_position(from_id), _abstract_pf.get_point_position(data[0])])
 		_abstract_pf.connect_points(from_id, data[0])
 	abstract_pf_lock.write_unlock()
 
@@ -153,7 +150,9 @@ func join_points(chunk : Chunk, points : Array):
 				_pathfinding.connect_points(id, otherId, true)
 
 func get_abstract_path(from : Vector3i, to : Vector3i) -> Array:
-	print("Getting abstract path from %s to %s" % [from, to])
+	var s = Time.get_ticks_usec()
+	
+	#print("Getting abstract path from %s to %s" % [from, to])
 	# Check if from and to are in the same chunk
 	var from_chunk = _get_chunk_by_global_pos(from)
 	var to_chunk = _get_chunk_by_global_pos(to)
@@ -164,17 +163,24 @@ func get_abstract_path(from : Vector3i, to : Vector3i) -> Array:
 	
 	if from_chunk == to_chunk or (from_chunk.position - to_chunk.position).length() == 1:
 		return []
-	
 	var abstract_start = _abstract_pf.get_closest_point(from)
 	var abstract_end = _abstract_pf.get_closest_point(to)
-	print("Found abstract start and goal: from %s to %s" % [_abstract_pf.get_point_position(abstract_start), _abstract_pf.get_point_position(abstract_end)])
-	print("Start connections: %s" % _abstract_pf.get_point_connections(abstract_start))
-	print("Goal connections: %s" % _abstract_pf.get_point_connections(abstract_end))
 	
-	return _abstract_pf.get_point_path(abstract_start, abstract_end)
+	#print("Found abstract start and goal: from %s to %s" % [_abstract_pf.get_point_position(abstract_start), _abstract_pf.get_point_position(abstract_end)])
+	#print("Start connections: %s" % _abstract_pf.get_point_connections(abstract_start))
+	#print("Goal connections: %s" % _abstract_pf.get_point_connections(abstract_end))
+	var e = Time.get_ticks_usec()
+	print("Everything except abstract pathfinding: %d" % (e - s))
+	s = Time.get_ticks_usec()
+	var path = _abstract_pf.get_point_path(abstract_start, abstract_end)
+	e = Time.get_ticks_usec()
+	print("Only pathfinding: %d" % (e - s))
+	print("Abstract connections checked: %s" % _abstract_pf.connections_checked)
+	print("Abstract point count: %s" % _abstract_pf.get_point_count()) 
+	return path
 
 func get_path(from : Vector3i, to : Vector3i):
-	print("Trying to get path from %s to %s" % [from, to])
+	#print("Trying to get path from %s to %s" % [from, to])
 	var from_id = ChunkUtil.get_point_id(from, _dimensions)
 	var to_id = ChunkUtil.get_point_id(to, _dimensions)
 	if !_pathfinding.has_point(from_id) or !_pathfinding.has_point(to_id):
@@ -184,7 +190,7 @@ func get_path(from : Vector3i, to : Vector3i):
 
 # Get path in current chunk + 1
 func get_partial_path(from : Vector3i, to : Vector3i):
-	print("Getting partial path")
+	#print("Getting partial path")
 	var from_chunk = _get_chunk_by_global_pos(from)
 	var path = get_path(from, to)
 	var partial = []
