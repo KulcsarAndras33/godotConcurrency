@@ -1,0 +1,41 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Projects\\concurrency\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{AC247DD6-DAE1-47FA-8CC1-44B64E5EF020}|concurrency.csproj|d:\\projects\\concurrency\\addons\\haastar\\graph\\graph.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{AC247DD6-DAE1-47FA-8CC1-44B64E5EF020}|concurrency.csproj|solutionrelative:addons\\haastar\\graph\\graph.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Graph.cs",
+              "DocumentMoniker": "D:\\Projects\\concurrency\\addons\\haastar\\graph\\Graph.cs",
+              "RelativeDocumentMoniker": "addons\\haastar\\graph\\Graph.cs",
+              "ToolTip": "D:\\Projects\\concurrency\\addons\\haastar\\graph\\Graph.cs",
+              "RelativeToolTip": "addons\\haastar\\graph\\Graph.cs",
+              "ViewState": "AgIAAFEAAAAAAAAAAAAmwGAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-14T12:06:00.827Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

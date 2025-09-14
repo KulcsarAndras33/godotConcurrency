@@ -1,10 +1,12 @@
 class_name ChunkManager extends HierachicalPathfinder
 
+var Graph = load("res://addons/haastar/graph/Graph.cs")
+
 var _threadPool : ThreadPool
 var _chunks : Dictionary[Vector3i, Chunk] = {}
 var _dimensions : Vector3i
 var _pathfinding : AStar3D = AStar3D.new()
-var _abstract_pf : HierarchicalAstar = HierarchicalAstar.new()
+var _abstract_pf = Graph.new()
 
 var pathfinding_lock : ReadWriteLock = ReadWriteLock.new().set_name("pathfinding")
 var abstract_pf_lock : ReadWriteLock = ReadWriteLock.new().set_name("abstract")
@@ -90,19 +92,17 @@ func alert_neighbor_changed(changedChunk : Chunk):
 func add_entrance(entrance : Entrance):
 	abstract_pf_lock.write_lock()
 	var id = entrance.get_id()
-	if _abstract_pf.has_point(id):
+	if _abstract_pf.HasVertex(id):
 		abstract_pf_lock.write_unlock()
 		return
 	
-	print("Adding entrance - from: %s to: %s" % [entrance.a, entrance.b])
+	#print("Adding entrance - from: %s to: %s" % [entrance.a, entrance.b])
 	
-	_abstract_pf.add_point(id, entrance.a)
+	_abstract_pf.AddVertex(id, entrance.a)
 	var other_id = entrance.get_reverse_id()
-	if !_abstract_pf.has_point(other_id):
-		_abstract_pf.add_point(other_id, entrance.b)
-		_abstract_pf.connect_points(id, other_id)
-		_abstract_pf.set_weight(id, other_id, 1)
-		_abstract_pf.set_weight(other_id, id, 1)
+	if !_abstract_pf.HasVertex(other_id):
+		_abstract_pf.AddVertex(other_id, entrance.b)
+		_abstract_pf.AddEdge(id, other_id, 1)
 	abstract_pf_lock.write_unlock()
 	
 	pathfinding_lock.write_lock()
@@ -118,10 +118,7 @@ func add_entrance(entrance : Entrance):
 func set_weights(from_id : int, weights : Array):
 	abstract_pf_lock.write_lock()
 	for data : Array in weights:
-		_abstract_pf.set_weight(from_id, data[0], data[1])
-		if !_abstract_pf.has_point(data[0]):
-			continue
-		_abstract_pf.connect_points(from_id, data[0])
+		_abstract_pf.AddEdge(from_id, data[0], data[1])
 	abstract_pf_lock.write_unlock()
 
 func set_points(chunk : Chunk, points : Array):
@@ -163,8 +160,8 @@ func get_abstract_path(from : Vector3i, to : Vector3i) -> Array:
 	
 	if from_chunk == to_chunk or (from_chunk.position - to_chunk.position).length() == 1:
 		return []
-	var abstract_start = _abstract_pf.get_closest_point(from)
-	var abstract_end = _abstract_pf.get_closest_point(to)
+	var abstract_start = _abstract_pf.GetClosestVertexId(from)
+	var abstract_end = _abstract_pf.GetClosestVertexId(to)
 	
 	#print("Found abstract start and goal: from %s to %s" % [_abstract_pf.get_point_position(abstract_start), _abstract_pf.get_point_position(abstract_end)])
 	#print("Start connections: %s" % _abstract_pf.get_point_connections(abstract_start))
@@ -172,11 +169,10 @@ func get_abstract_path(from : Vector3i, to : Vector3i) -> Array:
 	var e = Time.get_ticks_usec()
 	print("Everything except abstract pathfinding: %d" % (e - s))
 	s = Time.get_ticks_usec()
-	var path = _abstract_pf.get_point_path(abstract_start, abstract_end)
+	var path = _abstract_pf.GetPath(abstract_start, abstract_end)
 	e = Time.get_ticks_usec()
 	print("Only pathfinding: %d" % (e - s))
-	print("Abstract connections checked: %s" % _abstract_pf.connections_checked)
-	print("Abstract point count: %s" % _abstract_pf.get_point_count()) 
+	#print("Abstract point count: %s" % _abstract_pf.) 
 	return path
 
 func get_path(from : Vector3i, to : Vector3i):

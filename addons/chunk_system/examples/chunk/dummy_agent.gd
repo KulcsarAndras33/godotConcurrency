@@ -10,7 +10,7 @@ func get_to(to : Vector3i):
 	var end = Time.get_ticks_usec()
 	time += end - start
 	print("Calculating abstract path took: %s microsec" % time)
-	print(abstract)
+	#print(abstract)
 	while abstract.size() > 2:
 		print(abstract)
 		start = Time.get_ticks_usec()

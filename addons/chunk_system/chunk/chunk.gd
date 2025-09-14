@@ -94,7 +94,7 @@ func _calculate_pathfinding():
 					if _is_on_edge(x, y, z):
 						edges.set(point, false)
 	
-	print("Edges: %s" % edges)
+	#print("Edges: %s" % edges)
 	
 	_chunk_manager.set_points(self, global_points)
 	

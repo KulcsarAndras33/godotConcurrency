@@ -67,7 +67,7 @@ func path():
 	
 	agent.get_to(goal)
 	
-	print("Total dict get time: %s" % chunk_manager._abstract_pf.time)
+	#print("Total dict get time: %s" % chunk_manager._abstract_pf.time)
 
 func chunk_random_fill(chunk : Chunk, levels, probs):
 	for i in range(levels.size()):
