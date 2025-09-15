@@ -9,7 +9,7 @@ public class ChunkManager
 
     private Vector3I dimensions;
     private Dictionary<Vector3I, Chunk> chunks = new();
-    private TaskFactory taskFactory;
+    private PriorityThreadPool threadPool = new(4);
 
     public static ChunkManager GetInstance()
     {
@@ -28,9 +28,6 @@ public class ChunkManager
     private ChunkManager(Vector3I dimensions)
     {
         this.dimensions = dimensions;
-        var taskScheduler = new PriorityTaskScheduler();
-        taskScheduler.MaximumConcurrencyLevel = 4;
-        taskFactory = new TaskFactory(taskScheduler);
     }
 
     public void CreateChunk(Vector3I position)
@@ -45,7 +42,10 @@ public class ChunkManager
     {
         foreach (var chunk in chunks.Values)
         {
-            chunk.Transform(transformer);
+            threadPool.Enqueue(() => 
+            {
+                chunk.Transform(transformer);
+            });
         }
     }
 

@@ -35,7 +35,6 @@ public partial class InChunkPathfinding : Node
                     if (rand.NextDouble() < 0.9)
                     {
                         data[x, level, z] = 1;
-                        GD.Print(x, " ", level, " ", z);
                     }
                 }
             }
