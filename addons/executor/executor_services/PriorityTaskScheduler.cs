@@ -7,6 +7,8 @@ public class PriorityTaskScheduler : TaskScheduler
 {
     public const int DEFAULT_PRIORITY = 50;
 
+    public new int MaximumConcurrencyLevel = 8;
+
     private PriorityQueue<Task, int> taskQueue = new();
     private int delegatesRunning = 0;
 

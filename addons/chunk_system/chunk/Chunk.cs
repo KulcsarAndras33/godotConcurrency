@@ -24,4 +24,18 @@ public class Chunk
         // TODO Try get entrances
     }
 
+    public int GetData(Vector3I pos)
+    {
+        if (!IsInBounds(pos))
+            return 0;
+        
+        return data[pos.X, pos.Y, pos.Z];
+    }
+
+    public bool IsInBounds(Vector3I pos) {
+        return pos.X >= 0 && pos.X < dimensions.X &&
+               pos.Y >= 0 && pos.Y < dimensions.Y &&
+               pos.Z >= 0 && pos.Z < dimensions.Z;
+    }
+
 }
