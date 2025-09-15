@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://drja8l3me5rk4"]
-
-[ext_resource type="Script" uid="uid://pmifo6ts6he" path="res://addons/concurrency_plugin/examples/prio_queue/prio_queue_example.gd" id="1_yirxl"]
-
-[node name="PrioQueueMain" type="Node2D"]
-script = ExtResource("1_yirxl")
