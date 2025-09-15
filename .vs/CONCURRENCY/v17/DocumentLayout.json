@@ -1,0 +1,41 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\Projects\\concurrency\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{EFB376BA-C42E-43B7-B5A3-C80F596C1497}|concurrency.csproj|d:\\projects\\concurrency\\addons\\chunk_system\\chunk_system.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{EFB376BA-C42E-43B7-B5A3-C80F596C1497}|concurrency.csproj|solutionrelative:addons\\chunk_system\\chunk_system.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "chunk_system.cs",
+              "DocumentMoniker": "D:\\Projects\\concurrency\\addons\\chunk_system\\chunk_system.cs",
+              "RelativeDocumentMoniker": "addons\\chunk_system\\chunk_system.cs",
+              "ToolTip": "D:\\Projects\\concurrency\\addons\\chunk_system\\chunk_system.cs",
+              "RelativeToolTip": "addons\\chunk_system\\chunk_system.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-09-15T14:09:27.676Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
