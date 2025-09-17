@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bj7wjb7ba37m0"]
+
+[ext_resource type="Script" uid="uid://drmgrdxe2wtt2" path="res://examples/hierachical_pathfinding/HierarchicalPathfinding.cs" id="1_jqggo"]
+
+[node name="Scene" type="Node2D"]
+script = ExtResource("1_jqggo")

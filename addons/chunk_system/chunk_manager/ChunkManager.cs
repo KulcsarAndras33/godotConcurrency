@@ -10,6 +10,7 @@ public class ChunkManager
     private Vector3I dimensions;
     private Dictionary<Vector3I, Chunk> chunks = new();
     private PriorityThreadPool threadPool = new(4);
+    private GridPathFinder gridPathFinder = new();
 
     public static ChunkManager GetInstance()
     {
@@ -22,6 +23,7 @@ public class ChunkManager
             return instance;
 
         instance = new ChunkManager(dimensions);
+        instance.gridPathFinder.isWalkable = instance.IsWalkable;
         return instance;
     }
 
@@ -36,6 +38,7 @@ public class ChunkManager
             return;
 
         chunks[position] = new Chunk(dimensions, position);
+        chunks[position].chunkManager = this;
     }
 
     public void TransformChunks(Action<int[,,]> transformer)
@@ -45,6 +48,17 @@ public class ChunkManager
             threadPool.Enqueue(() => 
             {
                 chunk.Transform(transformer);
+            });
+        }
+    }
+
+    public void GenerateHierachicalPathfinding()
+    {
+        foreach (var chunk in chunks.Values)
+        {
+            threadPool.Enqueue(() => 
+            {
+                chunk.GenerateHierarchicalPathfinding();
             });
         }
     }
@@ -74,6 +88,6 @@ public class ChunkManager
 
     public List<Vector3I> FindPath(Vector3I start, Vector3I end)
     {
-        return GridPathFinder.FindPath(start, end, IsWalkable);
+        return gridPathFinder.FindPath(start, end);
     }
 }
