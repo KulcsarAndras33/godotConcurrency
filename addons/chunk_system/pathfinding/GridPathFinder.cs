@@ -1,8 +1,20 @@
+using System;
 using System.Collections.Generic;
 using Godot;
 
-public class GridPathFinder : AStar<Vector3I>
+public class GridPathFinder : AStar<Vector3I, Vector3I>
 {
+    // Always one, because grid based and no diagonal movement
+    protected override float Distance(Vector3I a, Vector3I b, Vector3I b_node)
+    {
+        return 1;
+    }
+
+    protected override Vector3I GetId(Vector3I node)
+    {
+        return node;
+    }
+
     // TODO No up and down
     override protected List<Vector3I> GetNeighbors(Vector3I node)
     {

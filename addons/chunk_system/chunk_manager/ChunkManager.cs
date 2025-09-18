@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Godot;
 
@@ -11,6 +12,8 @@ public class ChunkManager
     private Dictionary<Vector3I, Chunk> chunks = new();
     private PriorityThreadPool threadPool = new(4);
     private GridPathFinder gridPathFinder = new();
+    private WeightedPathfinder abstractPathfinder = new();
+    private ReaderWriterLock abstractPathfinderLock = new();
 
     public static ChunkManager GetInstance()
     {
@@ -45,7 +48,7 @@ public class ChunkManager
     {
         foreach (var chunk in chunks.Values)
         {
-            threadPool.Enqueue(() => 
+            threadPool.Enqueue(() =>
             {
                 chunk.Transform(transformer);
             });
@@ -56,7 +59,7 @@ public class ChunkManager
     {
         foreach (var chunk in chunks.Values)
         {
-            threadPool.Enqueue(() => 
+            threadPool.Enqueue(() =>
             {
                 chunk.GenerateHierarchicalPathfinding();
             });
@@ -89,5 +92,20 @@ public class ChunkManager
     public List<Vector3I> FindPath(Vector3I start, Vector3I end)
     {
         return gridPathFinder.FindPath(start, end);
+    }
+
+    public List<Vector3I> FindAbstractPath(Vector3I start, Vector3I end)
+    {
+        int startId = abstractPathfinder.GetClosestVertexId(start);
+        int endId = abstractPathfinder.GetClosestVertexId(end);
+
+        return abstractPathfinder.FindPathPositions(startId, endId);
+    }
+    
+    public void AddAbstractEdge(Vector3I from, Vector3I to, float weight, bool bidirectional = true)
+    {
+        abstractPathfinderLock.AcquireWriterLock(int.MaxValue);
+        abstractPathfinder.AddEdge(from, to, weight, bidirectional);
+        abstractPathfinderLock.ReleaseWriterLock();
     }
 }

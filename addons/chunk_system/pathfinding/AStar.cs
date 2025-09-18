@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-public abstract class AStar<T> where T : IEquatable<T>
+public abstract class AStar<T, R> where T : IEquatable<T>
 {
     public Func<T, bool> isWalkable { get; set; }
 
@@ -17,9 +17,13 @@ public abstract class AStar<T> where T : IEquatable<T>
         return totalPath;
     }
 
-    abstract protected List<T> GetNeighbors(T node);
+    abstract protected List<R> GetNeighbors(T node);
+
+    abstract protected T GetId(R node);
 
     abstract protected float Heuristic(T a, T b);
+
+    abstract protected float Distance(T a, T b, R b_node);
 
     public List<T> FindPath(T start, T end)
     {
@@ -44,20 +48,21 @@ public abstract class AStar<T> where T : IEquatable<T>
 
             foreach (var neighbor in GetNeighbors(current))
             {
-                if (!isWalkable(neighbor))
+                var neighborId = GetId(neighbor);
+                if (!isWalkable(neighborId))
                     continue;
 
-                float tentativeGScore = gScore[current] + 1;
+                float tentativeGScore = gScore[current] + Distance(current, neighborId, neighbor);
 
-                if (!gScore.ContainsKey(neighbor) || tentativeGScore < gScore[neighbor])
+                if (!gScore.ContainsKey(neighborId) || tentativeGScore < gScore[neighborId])
                 {
-                    cameFrom[neighbor] = current;
-                    gScore[neighbor] = tentativeGScore;
-                    fScore[neighbor] = tentativeGScore + Heuristic(neighbor, end);
+                    cameFrom[neighborId] = current;
+                    gScore[neighborId] = tentativeGScore;
+                    fScore[neighborId] = tentativeGScore + Heuristic(neighborId, end);
 
-                    if (!openSet.UnorderedItems.Any(item => item.Element.Equals(neighbor)))
+                    if (!openSet.UnorderedItems.Any(item => item.Element.Equals(neighborId)))
                     {
-                        openSet.Enqueue(neighbor, fScore[neighbor]);
+                        openSet.Enqueue(neighborId, fScore[neighborId]);
                     }
                 }
             }
