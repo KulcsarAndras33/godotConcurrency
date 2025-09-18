@@ -5,9 +5,9 @@ public partial class HierarchicalPathfinding : Node
 {
     public async override void _Ready()
     {
-        Vector3I chunkSize = new(40, 2, 40);
+        Vector3I chunkSize = new(20, 2, 20);
         var chunkManager = ChunkManager.CreateInstance(chunkSize);
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < 100; i++)
         {
             chunkManager.CreateChunk(new Vector3I(i, 0, 0));
         }
@@ -23,19 +23,21 @@ public partial class HierarchicalPathfinding : Node
 
         var stopwatch = new System.Diagnostics.Stopwatch();
         stopwatch.Start();
-        var path = chunkManager.FindAbstractPath(new Vector3I(1, 1, 1), new Vector3I((int)9.5 * chunkSize.X, 1, 10));
+        var path = chunkManager.FindAbstractPath(new Vector3I(1, 1, 1), new Vector3I((int)99.5 * chunkSize.X, 1, 10));
         stopwatch.Stop();
         GD.Print("Pathfinding took " + stopwatch.ElapsedMilliseconds + "ms");
         GD.Print("Path length: " + path.Count);
-        foreach (var step in path)
-        {
-            GD.Print(step);
-        }
+        // foreach (var step in path)
+        // {
+        //     GD.Print(step);
+        // }
 
+        stopwatch.Reset();
         stopwatch.Start();
-        chunkManager.FindPath(new Vector3I(1, 1, 1), new Vector3I((int)9.5 * chunkSize.X, 1, 10));
+        path = chunkManager.FindPath(new Vector3I(1, 1, 1), new Vector3I((int)99.5 * chunkSize.X, 1, 10));
         stopwatch.Stop();
         GD.Print("Detailed pathfinding took " + stopwatch.ElapsedMilliseconds + "ms");
+        GD.Print("Path length: " + path.Count);
     }
 
     public Action<int[,,]> RandomFill(int level)
@@ -47,7 +49,7 @@ public partial class HierarchicalPathfinding : Node
             {
                 for (int z = 0; z < data.GetLength(2); z++)
                 {
-                    if (rand.NextDouble() < 0.9)
+                    if (rand.NextDouble() < 1.5)
                     {
                         data[x, level, z] = 1;
                     }

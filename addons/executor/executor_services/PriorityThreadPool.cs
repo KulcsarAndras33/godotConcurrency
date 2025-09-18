@@ -7,7 +7,7 @@ public class PriorityThreadPool : IDisposable
     private readonly PriorityQueue<Action, int> _taskQueue = new();
     private readonly List<Thread> _workers;
     private readonly object _lock = new();
-    private readonly ManualResetEvent _taskAvailable = new(false);
+    private readonly AutoResetEvent _taskAvailable = new(false);
     private bool _isRunning = true;
 
     public PriorityThreadPool(int workerCount)
@@ -43,7 +43,7 @@ public class PriorityThreadPool : IDisposable
 
             while (_taskQueue.Count == 0 && _isRunning)
             {
-                _taskAvailable.Reset();
+                _taskAvailable.WaitOne();
             }
 
             lock (_lock)

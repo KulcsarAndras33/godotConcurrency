@@ -4,9 +4,12 @@ using Godot;
 
 public class GridPathFinder : AStar<Vector3I, Vector3I>
 {
+    public int distanceChecks = 0;
+
     // Always one, because grid based and no diagonal movement
     protected override float Distance(Vector3I a, Vector3I b, Vector3I b_node)
     {
+        distanceChecks++;
         return 1;
     }
 

@@ -45,7 +45,7 @@ public abstract class AStar<T, R> where T : IEquatable<T>
 
             if (current.Equals(end))
                 return ReconstructPath(cameFrom, current);
-
+            
             foreach (var neighbor in GetNeighbors(current))
             {
                 var neighborId = GetId(neighbor);
@@ -59,11 +59,7 @@ public abstract class AStar<T, R> where T : IEquatable<T>
                     cameFrom[neighborId] = current;
                     gScore[neighborId] = tentativeGScore;
                     fScore[neighborId] = tentativeGScore + Heuristic(neighborId, end);
-
-                    if (!openSet.UnorderedItems.Any(item => item.Element.Equals(neighborId)))
-                    {
-                        openSet.Enqueue(neighborId, fScore[neighborId]);
-                    }
+                    openSet.Enqueue(neighborId, fScore[neighborId]);
                 }
             }
         }

@@ -91,7 +91,12 @@ public class ChunkManager
 
     public List<Vector3I> FindPath(Vector3I start, Vector3I end)
     {
-        return gridPathFinder.FindPath(start, end);
+
+        var path = gridPathFinder.FindPath(start, end);
+
+        GD.Print("Distance checks: " + gridPathFinder.distanceChecks);
+
+        return path;
     }
 
     public List<Vector3I> FindAbstractPath(Vector3I start, Vector3I end)
