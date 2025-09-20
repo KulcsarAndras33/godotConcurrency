@@ -17,4 +17,8 @@ public abstract class State : IState
             CreateDefaultAction(actionSetter);
         });
     }
+
+    public abstract bool IsDetailed();
+    public abstract bool IsValid();
+    public abstract IState GetNextState();
 }

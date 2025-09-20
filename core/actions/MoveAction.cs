@@ -12,6 +12,7 @@ public class MoveAction : AgentAction
 
     private void TakeStep()
     {
+        
         agent.SetPosition(detailedPath[0]);
         detailedPath.RemoveAt(0);
     }
@@ -41,7 +42,15 @@ public class MoveAction : AgentAction
 
     protected override void AbstractNextStep()
     {
-        // Implementation for abstract next step
+        if (abstractPath == null || abstractPath.Count == 0)
+        {
+            // No more steps to take
+            isComplete = true;
+            return;
+        }
+
+        agent.SetPosition(abstractPath[0]);
+        abstractPath.RemoveAt(0);
     }
 
     public override bool IsComplete()
@@ -56,6 +65,6 @@ public class MoveAction : AgentAction
 
     protected override ulong GetAbstractTimeout()
     {
-        throw new System.NotImplementedException();
+        return (ulong)(executor.IsExecuting() ? 0 : 1000);
     }
 }

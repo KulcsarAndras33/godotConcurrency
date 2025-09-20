@@ -1,4 +1,4 @@
-public interface IAgent
+public interface IAgent : IGridObject
 {
     public CommunityManager communityManager { get; set; }
 

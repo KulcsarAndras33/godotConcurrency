@@ -107,11 +107,21 @@ public partial class ChunkManager : Node
 
         return abstractPathfinder.FindPathPositions(startId, endId);
     }
-    
+
     public void AddAbstractEdge(Vector3I from, Vector3I to, float weight, bool bidirectional = true)
     {
         abstractPathfinderLock.AcquireWriterLock(int.MaxValue);
         abstractPathfinder.AddEdge(from, to, weight, bidirectional);
         abstractPathfinderLock.ReleaseWriterLock();
+    }
+
+    public void SetChunkToAbstract(Vector3I globalPos)
+    {
+        var chunk = GetChunkByPos(globalPos);
+        if (chunk != null && chunk.isDetailed)
+        {
+            chunk.ToAbstract();
+            GD.Print($"Set chunk at {chunk.position} to abstract");
+        }
     }
 }

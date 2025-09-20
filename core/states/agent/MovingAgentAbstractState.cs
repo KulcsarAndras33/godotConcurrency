@@ -2,38 +2,31 @@
 using System;
 using Godot;
 
-public class MovingAgentDetailedState : State, IMovingState
+public class MovingAgentAbstractState : State, IMovingState
 {
-    static PackedScene EXAMPLE_SCENE = GD.Load<PackedScene>("res://examples/utils/Agent.tscn");
-
     private Chunk currChunk;
 
     public MovingAgent agent;
     public Vector3 position;
 
-    public Node3D node;
-
-    public MovingAgentDetailedState(MovingAgent agent, Vector3 position)
+    public MovingAgentAbstractState(MovingAgent agent, Vector3 position)
     {
         this.agent = agent;
         this.position = position;
-        node = EXAMPLE_SCENE.Instantiate<Node3D>();
-        ChunkManager.GetInstance().GetTree().Root.AddChild(node);
     }
 
     public override void Enter()
     {
-        node.GlobalPosition = position;
+        GD.Print("Entering MovingAgentAbstractState");
     }
 
     public override void Exit()
     {
-        node.QueueFree();
     }
 
     public override void Load()
     {
-        GD.Print("Loading resources for MovingAgentDetailedState");
+        GD.Print("Loading resources for MovingAgentAbstractState");
     }
 
     public void SetPostion(Vector3 position)
@@ -46,14 +39,13 @@ public class MovingAgentDetailedState : State, IMovingState
             newChunk.AddAgent(agent);
         }
 
-        if (!newChunk.isDetailed)
+        if (newChunk.isDetailed)
         {
             Exit();
         }
-        currChunk = newChunk;
 
+        currChunk = newChunk;
         this.position = position;
-        node.GlobalPosition = position;
     }
 
     public Vector3 GetPostion()
@@ -63,7 +55,7 @@ public class MovingAgentDetailedState : State, IMovingState
 
     public override void Unload()
     {
-        GD.Print("Unloading resources for MovingAgentDetailedState");
+        GD.Print("Unloading resources for MovingAgentAbstractState");
     }
 
     protected override void CreateDefaultAction(Action<AgentAction> actionSetter)
@@ -79,18 +71,17 @@ public class MovingAgentDetailedState : State, IMovingState
 
     public override bool IsDetailed()
     {
-        return true;
+        return false;
     }
 
     public override bool IsValid()
     {
-        return currChunk?.isDetailed ?? true;
+        return !currChunk?.isDetailed ?? true;
     }
 
     public override IState GetNextState()
     {
-        var nextState = new MovingAgentAbstractState(agent, position);
-        nextState.Load();
+        var nextState = new MovingAgentDetailedState(agent, position);
         nextState.Enter();
         return nextState;
     }

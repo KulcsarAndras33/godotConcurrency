@@ -8,10 +8,12 @@ using Godot;
 public class Chunk
 {
     private int[,,] data;
+    private List<IAgent> agents = new();
 
     public Vector3I dimensions;
     public Vector3I position;
     public ChunkManager chunkManager;
+    public bool isDetailed { get; private set; } = true;
 
     private IEnumerable<Vector3I> GetEdges()
     {
@@ -202,4 +204,18 @@ public class Chunk
         return globalPos - position * dimensions;
     }
 
+    public void AddAgent(IAgent agent)
+    {
+        agents.Add(agent);
+    }
+
+    public void RemoveAgent(IAgent agent)
+    {
+        agents.Remove(agent);
+    }
+
+    public void ToAbstract()
+    {
+        isDetailed = false;
+    }
 }

@@ -4,6 +4,7 @@ public partial class MovingAgent : IAgent
 {
     private IMovingState currentState;
     private AgentAction currentAction;
+
     public CommunityManager communityManager { get; set; }
 
     public MovingAgent()
@@ -15,6 +16,12 @@ public partial class MovingAgent : IAgent
 
     public void Tick()
     {
+        if (!currentState.IsValid())
+        {
+            currentState = currentState.GetNextState() as IMovingState;
+            GD.Print("State changed to: " + currentState.GetType().Name);
+        }
+
         if (currentAction == null || currentAction.IsComplete())
         {
             currentState.GetDefaultAction(action =>
@@ -26,7 +33,14 @@ public partial class MovingAgent : IAgent
         {
             if (!currentAction.IsOnCoolDown())
             {
-                currentAction.DoDetailedStep();
+                if (currentState.IsDetailed())
+                {
+                    currentAction.DoDetailedStep();
+                }
+                else
+                {
+                    currentAction.DoAbstractStep();
+                }
             }
         }
     }
