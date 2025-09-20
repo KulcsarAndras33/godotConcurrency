@@ -4,6 +4,8 @@ using System.Threading;
 
 public class PriorityThreadPool : IDisposable
 {
+    public const int DEFAULT_PRIORTY = 50;
+
     private readonly PriorityQueue<Action, int> _taskQueue = new();
     private readonly List<Thread> _workers;
     private readonly object _lock = new();
@@ -24,7 +26,7 @@ public class PriorityThreadPool : IDisposable
         }
     }
 
-    public void Enqueue(Action task, int priority = 50)
+    public void Enqueue(Action task, int priority = DEFAULT_PRIORTY)
     {
         if (task == null) throw new ArgumentNullException(nameof(task));
 

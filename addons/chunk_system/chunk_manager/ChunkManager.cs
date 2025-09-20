@@ -1,19 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using Godot;
 
-public class ChunkManager
+public partial class ChunkManager : Node
 {
     static private ChunkManager instance;
 
     private Vector3I dimensions;
     private Dictionary<Vector3I, Chunk> chunks = new();
-    private PriorityThreadPool threadPool = new(4);
     private GridPathFinder gridPathFinder = new();
     private WeightedPathfinder abstractPathfinder = new();
     private ReaderWriterLock abstractPathfinderLock = new();
+
+    public PriorityThreadPool threadPool = new(10);
 
     public static ChunkManager GetInstance()
     {
@@ -83,6 +83,11 @@ public class ChunkManager
         return chunk.GetData(pos % dimensions);
     }
 
+    public IEnumerable<Chunk> GetChunks()
+    {
+        return chunks.Values;
+    }
+
     public bool IsWalkable(Vector3I pos)
     {
         int data = GetDataByPos(pos + new Vector3I(0, -1, 0));
@@ -91,11 +96,7 @@ public class ChunkManager
 
     public List<Vector3I> FindPath(Vector3I start, Vector3I end)
     {
-
         var path = gridPathFinder.FindPath(start, end);
-
-        GD.Print("Distance checks: " + gridPathFinder.distanceChecks);
-
         return path;
     }
 

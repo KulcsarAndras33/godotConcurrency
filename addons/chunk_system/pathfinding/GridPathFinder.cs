@@ -4,12 +4,9 @@ using Godot;
 
 public class GridPathFinder : AStar<Vector3I, Vector3I>
 {
-    public int distanceChecks = 0;
-
     // Always one, because grid based and no diagonal movement
     protected override float Distance(Vector3I a, Vector3I b, Vector3I b_node)
     {
-        distanceChecks++;
         return 1;
     }
 
@@ -33,6 +30,6 @@ public class GridPathFinder : AStar<Vector3I, Vector3I>
 
     override protected float Heuristic(Vector3I a, Vector3I b)
     {
-        return a.DistanceTo(b);
+        return Math.Abs(a.X - b.X) + Math.Abs(a.Y - b.Y) + Math.Abs(a.Z - b.Z);
     }
 }
