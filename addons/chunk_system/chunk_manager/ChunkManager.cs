@@ -83,6 +83,19 @@ public partial class ChunkManager : Node
         return chunk.GetData(pos % dimensions);
     }
 
+    public float GetWeightBetween(Vector3I from, Vector3I to)
+    {
+        if (abstractPathfinder.TryGetWeightBetween(from, to, out float weight))
+        {
+            GD.Print("Weight found");
+            return weight;
+        }
+
+        //Fallback to euclidean distance if chunk pathfinding was never calculated
+        GD.Print("Weight NOT found");
+        return from.DistanceTo(to);
+    }
+
     public IEnumerable<Chunk> GetChunks()
     {
         return chunks.Values;

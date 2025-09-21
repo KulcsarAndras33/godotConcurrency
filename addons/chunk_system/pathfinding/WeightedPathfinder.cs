@@ -84,7 +84,7 @@ public class WeightedPathfinder : AStar<int, Edge>
 
         if (!edges.ContainsKey(fromId))
             edges[fromId] = new List<Edge>();
-        
+
         edges[fromId].Add(new Edge(toId, weight));
     }
 
@@ -97,5 +97,26 @@ public class WeightedPathfinder : AStar<int, Edge>
             path.Add(vertices[id]);
         }
         return path;
+    }
+
+    public bool TryGetWeightBetween(Vector3I from, Vector3I to, out float weight)
+    {
+        int fromId = GetVertexId(from);
+        int toId = GetVertexId(to);
+
+        if (edges.TryGetValue(fromId, out var edgeList))
+        {
+            foreach (var edge in edgeList)
+            {
+                if (edge.to == toId)
+                {
+                    weight = edge.weight;
+                    return true;
+                }
+            }
+        }
+
+        weight = 0;
+        return false;
     }
 }

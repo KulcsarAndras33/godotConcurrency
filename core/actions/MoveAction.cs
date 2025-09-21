@@ -65,6 +65,9 @@ public class MoveAction : AgentAction
 
     protected override ulong GetAbstractTimeout()
     {
-        return (ulong)(executor.IsExecuting() ? 0 : 1000);
+        if (abstractPath == null || abstractPath.Count == 0)
+            return 0;
+        
+        return (ulong) ChunkManager.GetInstance().GetWeightBetween((Vector3I)agent.GetPosition(), abstractPath[0]) * 300;
     }
 }

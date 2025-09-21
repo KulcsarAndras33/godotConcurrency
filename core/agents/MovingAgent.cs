@@ -19,7 +19,6 @@ public partial class MovingAgent : IAgent
         if (!currentState.IsValid())
         {
             currentState = currentState.GetNextState() as IMovingState;
-            GD.Print("State changed to: " + currentState.GetType().Name);
         }
 
         if (currentAction == null || currentAction.IsComplete())
