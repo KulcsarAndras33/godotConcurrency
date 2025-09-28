@@ -12,14 +12,13 @@ public class MoveAction : AgentAction
 
     private void TakeStep()
     {
-        
         agent.SetPosition(detailedPath[0]);
         detailedPath.RemoveAt(0);
     }
 
     protected override void DetailedNextStep()
     {
-        if (detailedPath != null && detailedPath.Count > 0)
+        if (detailedPath != null && detailedPath.Count > 0 && !executor.IsExecuting())
         {
             TakeStep();
             return;

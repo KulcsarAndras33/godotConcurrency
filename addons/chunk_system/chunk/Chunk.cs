@@ -13,7 +13,7 @@ public class Chunk
     public Vector3I dimensions;
     public Vector3I position;
     public ChunkManager chunkManager;
-    public bool isDetailed { get; private set; } = true;
+    public bool isDetailed { get; private set; } = false;
     public bool isPathFindingCalculated { get; private set; } = false;
 
     private IEnumerable<Vector3I> GetEdges()
@@ -144,6 +144,8 @@ public class Chunk
         data = new int[dimensions.X, dimensions.Y, dimensions.Z];
 
         transformer.Invoke(data);
+
+        isDetailed = true;
     }
 
     public int GetData(Vector3I pos)

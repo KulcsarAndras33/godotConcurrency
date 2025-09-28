@@ -1,6 +1,18 @@
-[gd_scene load_steps=2 format=3 uid="uid://5rs286awvhm2"]
+[gd_scene load_steps=4 format=3 uid="uid://cav03rag0jpco"]
 
 [ext_resource type="Script" uid="uid://dlicdrqn06tb4" path="res://examples/neverloaded_pf/NeverloadedPathfinding.cs" id="1_sa2ql"]
+[ext_resource type="PackedScene" uid="uid://d0jpn0ythmp3h" path="res://examples/utils/NaiveChunkVisualiser.tscn" id="2_1qmcj"]
+[ext_resource type="PackedScene" uid="uid://dvhujevilahaj" path="res://examples/utils/PathVisualiser.tscn" id="3_wocf8"]
 
-[node name="Scene" type="Node3D"]
+[node name="Scene" type="Node2D"]
 script = ExtResource("1_sa2ql")
+
+[node name="NaiveChunkVisualiser" parent="." instance=ExtResource("2_1qmcj")]
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 81.1916, 82.6153, 38.0774)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.734477, 0.678634, 0, -0.678634, 0.734477, 0, 76.4945, 89.8876)
+
+[node name="PathVisualiser" parent="." instance=ExtResource("3_wocf8")]

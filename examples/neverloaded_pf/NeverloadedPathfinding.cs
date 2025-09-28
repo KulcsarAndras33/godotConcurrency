@@ -7,6 +7,8 @@ public partial class NeverloadedPathfinding : Node
     {
         Vector3I chunkSize = new(20, 2, 20);
         var chunkManager = ChunkManager.CreateInstance(chunkSize);
+        AddChild(chunkManager);
+
         for (int i = 0; i < 5; i++)
         {
             chunkManager.CreateChunk(new Vector3I(i, 0, 0));
@@ -31,11 +33,24 @@ public partial class NeverloadedPathfinding : Node
 
         await ToSignal(GetTree().CreateTimer(1), Timer.SignalName.Timeout);
 
-        var path = chunkManager.FindAbstractPath(new Vector3I(1, 1, 1), new Vector3I((int)4 * chunkSize.X, 1, 10));
-        GD.Print("Path length: " + path.Count);
-        foreach (var step in path)
-        {
-            GD.Print(step);
+        var visualiser = GetNode<NaiveChunkVisualiser>("NaiveChunkVisualiser");
+        visualiser.Create(chunkManager);
+
+        var pathDrawer = GetNode<PathVisualiser>("PathVisualiser");
+
+        var communityManager = new CommunityManager();
+        AddChild(communityManager);
+        const int AGENT_COUNT = 1;
+        for (int i = 0; i < AGENT_COUNT; i++) {
+            var agent = new MovingAgent();
+
+            var action = new MoveAction();
+            action.abstractPath = chunkManager.FindAbstractPath(new Vector3I(0, 1, 5), new Vector3I(110, 1, 5));
+            action.agent = agent;
+
+            agent.SetAction(action);
+            pathDrawer.SetAgent(agent);
+            communityManager.AddAgent(agent);
         }
     }
 

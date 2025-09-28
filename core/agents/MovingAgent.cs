@@ -50,6 +50,11 @@ public partial class MovingAgent : IAgent
         currentState.SetPostion(position);
     }
 
+    public void SetAction(AgentAction action)
+    {
+        currentAction = action;
+    }
+
     public Vector3 GetPosition()
     {
         return currentState.GetPostion();
