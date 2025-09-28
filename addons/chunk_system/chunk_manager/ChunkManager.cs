@@ -118,10 +118,47 @@ public partial class ChunkManager : Node
 
     public List<Vector3I> FindAbstractPath(Vector3I start, Vector3I end)
     {
+        // TODO This might not be efficient, because we iterate through the whole abstract graph
         int startId = abstractPathfinder.GetClosestVertexId(start);
         int endId = abstractPathfinder.GetClosestVertexId(end);
 
-        return abstractPathfinder.FindPathPositions(startId, endId);
+        var endChunk = GetChunkByPos(end);
+
+        var currentPath = abstractPathfinder.FindPathPositions(startId, endId);
+
+        while (GetChunkByPos(currentPath.Last()) != endChunk)
+        {
+            var pathEndingChunk = GetChunkByPos(currentPath.Last());
+            GD.Print(pathEndingChunk.position);
+            GD.Print(endChunk.position);
+            while (pathEndingChunk != endChunk)
+            {
+                Vector3I nextChunkPos;
+                if (Math.Abs(pathEndingChunk.position.X - endChunk.position.X) > Math.Abs(pathEndingChunk.position.Z - endChunk.position.Z))
+                {
+                    nextChunkPos = pathEndingChunk.position + new Vector3I(1, 0, 0);
+                    GD.Print($"Next chunk pos: {nextChunkPos}");
+                }
+                else
+                {
+                    nextChunkPos = pathEndingChunk.position + new Vector3I(0, 0, 1);
+                    GD.Print($"Next chunk pos: {nextChunkPos}");
+                }
+                // TODO Is equals by ref suitable? (Like chunk was loaded in and out while pathfinding)
+                // TODO Only working in 2 dimensions
+                Chunk nextChunk = GetChunkByPos(nextChunkPos * dimensions);
+
+                if (nextChunk != null && nextChunk.isDetailed)
+                {
+                    break;
+                }
+
+                currentPath.Add(nextChunkPos * dimensions);
+                pathEndingChunk = nextChunk;
+            }
+        }
+
+        return currentPath;
     }
 
     // public List<Vector3I> FindAbstractPath(Vector3I start, Vector3I end)
