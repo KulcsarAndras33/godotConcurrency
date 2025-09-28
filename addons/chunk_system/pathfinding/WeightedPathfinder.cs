@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using Godot;
 
-public class WeightedPathfinder : AStar<int, Edge>
+public class WeightedPathfinder : StopableAStar<int, Edge>
 {
     // This is needed, otherwise the heuristic is too optimistic and A* behaves like Dijkstra
     const float HEURISTIC_FACTOR = 1.7f;
@@ -121,10 +121,17 @@ public class WeightedPathfinder : AStar<int, Edge>
         return false;
     }
 
-    // protected override bool StopCondition(int current, float currentFScore, int best, float bestFScore)
-    // {
-    //     GD.Print(currentFScore + " " + bestFScore);
-    //     return currentFScore <= bestFScore * STOP_THRESHOLD_PERCENT;
-    // }
+    public Vector3I GetPositionById(int id)
+    {
+        return vertices[id];
+    }
+
+    protected override bool StopCondition(int current, float currentFScore, int best, float bestFScore)
+    {
+        return false;
+
+        GD.Print($"Current: {currentFScore}, threshold: {bestFScore * STOP_THRESHOLD_PERCENT}");
+        return currentFScore >= bestFScore * STOP_THRESHOLD_PERCENT;
+    }
 
 }

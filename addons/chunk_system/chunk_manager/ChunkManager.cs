@@ -125,28 +125,27 @@ public partial class ChunkManager : Node
         var endChunk = GetChunkByPos(end);
 
         var currentPath = abstractPathfinder.FindPathPositions(startId, endId);
+        Vector3I? lastPathEnd = null;
 
-        while (GetChunkByPos(currentPath.Last()) != endChunk)
+        while (GetChunkByPos(currentPath.Last()) != endChunk && lastPathEnd != currentPath.Last())
         {
+            lastPathEnd = currentPath.Last();
             var pathEndingChunk = GetChunkByPos(currentPath.Last());
-            GD.Print(pathEndingChunk.position);
-            GD.Print(endChunk.position);
+            Chunk nextChunk = null;
             while (pathEndingChunk != endChunk)
             {
                 Vector3I nextChunkPos;
                 if (Math.Abs(pathEndingChunk.position.X - endChunk.position.X) > Math.Abs(pathEndingChunk.position.Z - endChunk.position.Z))
                 {
                     nextChunkPos = pathEndingChunk.position + new Vector3I(1, 0, 0);
-                    GD.Print($"Next chunk pos: {nextChunkPos}");
                 }
                 else
                 {
                     nextChunkPos = pathEndingChunk.position + new Vector3I(0, 0, 1);
-                    GD.Print($"Next chunk pos: {nextChunkPos}");
                 }
                 // TODO Is equals by ref suitable? (Like chunk was loaded in and out while pathfinding)
                 // TODO Only working in 2 dimensions
-                Chunk nextChunk = GetChunkByPos(nextChunkPos * dimensions);
+                nextChunk = GetChunkByPos(nextChunkPos * dimensions);
 
                 if (nextChunk != null && nextChunk.isDetailed)
                 {
@@ -155,6 +154,14 @@ public partial class ChunkManager : Node
 
                 currentPath.Add(nextChunkPos * dimensions);
                 pathEndingChunk = nextChunk;
+            }
+
+            if (nextChunk != null && nextChunk.isDetailed)
+            {
+                // TODO maybe push the starting point into the direction of travel a bit?
+                var partStartPos = nextChunk.position * dimensions + dimensions / 2;
+                var newPathPart = abstractPathfinder.FindPathPositions(abstractPathfinder.GetClosestVertexId(partStartPos), endId);
+                currentPath.AddRange(newPathPart.Skip(1));
             }
         }
 

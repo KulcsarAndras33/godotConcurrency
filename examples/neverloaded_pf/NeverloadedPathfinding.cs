@@ -13,6 +13,10 @@ public partial class NeverloadedPathfinding : Node
         {
             chunkManager.CreateChunk(new Vector3I(i, 0, 0));
         }
+
+        chunkManager.CreateChunk(new Vector3I(7, 0, 0));
+        chunkManager.CreateChunk(new Vector3I(8, 0, 0));
+
         chunkManager.TransformChunks(RandomFill(0));
 
         GD.Print("ASD");
@@ -25,7 +29,6 @@ public partial class NeverloadedPathfinding : Node
 
         await ToSignal(GetTree().CreateTimer(1), Timer.SignalName.Timeout);
 
-        // Adding never-loaded chunk
         GD.Print("Adding never loaded chunks");
         chunkManager.CreateChunk(new Vector3I(5, 0, 0));
         chunkManager.CreateChunk(new Vector3I(6, 0, 0));
@@ -45,7 +48,7 @@ public partial class NeverloadedPathfinding : Node
             var agent = new MovingAgent();
 
             var action = new MoveAction();
-            action.abstractPath = chunkManager.FindAbstractPath(new Vector3I(0, 1, 5), new Vector3I(130, 1, 5));
+            action.abstractPath = chunkManager.FindAbstractPath(new Vector3I(0, 1, 5), new Vector3I((int)(7.5 * chunkSize.X), 1, 5));
             action.agent = agent;
 
             agent.SetAction(action);

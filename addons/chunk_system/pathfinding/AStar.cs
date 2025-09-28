@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 public abstract class AStar<T, R> where T : IEquatable<T>
 {

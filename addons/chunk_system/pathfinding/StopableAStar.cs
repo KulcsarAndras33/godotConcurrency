@@ -35,7 +35,6 @@ public abstract class StopableAStar<T, R> where T : IEquatable<T>
         var cameFrom = new Dictionary<T, T>();
         var gScore = new Dictionary<T, float>();
         var fScore = new Dictionary<T, float>();
-        
 
         openSet.Enqueue(start, 0);
         gScore[start] = 0;
@@ -77,8 +76,7 @@ public abstract class StopableAStar<T, R> where T : IEquatable<T>
             }
         }
 
-        return new List<T>(); // No path found
+        return ReconstructPath(cameFrom, closest);
     }
-
 
 }

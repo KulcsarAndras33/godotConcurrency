@@ -40,6 +40,12 @@ public class MoveAction : AgentAction
             return;
         }
 
+        if (!ChunkManager.GetInstance().GetChunkByPos(abstractPath[0]).isPathFindingCalculated)
+        {
+            agent.SetPosition(abstractPath[0]);
+            return;
+        }
+
         executor.TryExecute(() =>
         {
             detailedPath = ChunkManager.GetInstance().FindPath((Vector3I)agent.GetPosition(), abstractPath[0]);
@@ -68,7 +74,7 @@ public class MoveAction : AgentAction
 
     protected override ulong GetDetailedTimeout()
     {
-        return (ulong)(executor.IsExecuting() ? 0 : 300);
+        return (ulong)(executor.IsExecuting() ? 0 : 150);
     }
 
     protected override ulong GetAbstractTimeout()
@@ -76,6 +82,6 @@ public class MoveAction : AgentAction
         if (abstractPath == null || abstractPath.Count == 0)
             return 0;
         
-        return (ulong) ChunkManager.GetInstance().GetWeightBetween((Vector3I)agent.GetPosition(), abstractPath[0]) * 300;
+        return (ulong) ChunkManager.GetInstance().GetWeightBetween((Vector3I)agent.GetPosition(), abstractPath[0]) * 150;
     }
 }
