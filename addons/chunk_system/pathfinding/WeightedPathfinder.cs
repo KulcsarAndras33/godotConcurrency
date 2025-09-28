@@ -6,6 +6,7 @@ public class WeightedPathfinder : AStar<int, Edge>
 {
     // This is needed, otherwise the heuristic is too optimistic and A* behaves like Dijkstra
     const float HEURISTIC_FACTOR = 1.7f;
+    const float STOP_THRESHOLD_PERCENT = 1.5f;
 
     private readonly Dictionary<int, List<Edge>> edges = new();
     private readonly Dictionary<int, Vector3I> vertices = new();
@@ -119,4 +120,11 @@ public class WeightedPathfinder : AStar<int, Edge>
         weight = 0;
         return false;
     }
+
+    // protected override bool StopCondition(int current, float currentFScore, int best, float bestFScore)
+    // {
+    //     GD.Print(currentFScore + " " + bestFScore);
+    //     return currentFScore <= bestFScore * STOP_THRESHOLD_PERCENT;
+    // }
+
 }

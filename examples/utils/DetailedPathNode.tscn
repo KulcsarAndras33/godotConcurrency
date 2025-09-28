@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3 uid="uid://h2n4ox5utt8g"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_32lrr"]
+albedo_color = Color(0.945924, 0.185497, 0.389818, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_6lvf8"]
+material = SubResource("StandardMaterial3D_32lrr")
+radius = 0.25
+height = 0.5
+
+[node name="DetailedPathNode" type="MeshInstance3D"]
+mesh = SubResource("SphereMesh_6lvf8")

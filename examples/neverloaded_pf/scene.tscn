@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://5rs286awvhm2"]
+
+[ext_resource type="Script" uid="uid://dlicdrqn06tb4" path="res://examples/neverloaded_pf/NeverloadedPathfinding.cs" id="1_sa2ql"]
+
+[node name="Scene" type="Node3D"]
+script = ExtResource("1_sa2ql")

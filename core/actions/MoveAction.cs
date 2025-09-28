@@ -32,6 +32,15 @@ public class MoveAction : AgentAction
             return;
         }
 
+        // If the next abstract node is just a step away, then take that step
+        // This helps with proper state changing
+        if (((Vector3)abstractPath[0]).DistanceTo(agent.GetPosition()) < 1.1)
+        {
+            agent.SetPosition(abstractPath[0]);
+            abstractPath.RemoveAt(0);
+            return;
+        }
+
         executor.TryExecute(() =>
         {
             detailedPath = ChunkManager.GetInstance().FindPath((Vector3I)agent.GetPosition(), abstractPath[0]);
