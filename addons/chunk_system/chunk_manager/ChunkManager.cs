@@ -137,11 +137,11 @@ public partial class ChunkManager : Node
                 Vector3I nextChunkPos;
                 if (Math.Abs(pathEndingChunk.position.X - endChunk.position.X) > Math.Abs(pathEndingChunk.position.Z - endChunk.position.Z))
                 {
-                    nextChunkPos = pathEndingChunk.position + new Vector3I(1, 0, 0);
+                    nextChunkPos = pathEndingChunk.position + new Vector3I(1, 0, 0) * Math.Sign(endChunk.position.X - pathEndingChunk.position.X);
                 }
                 else
                 {
-                    nextChunkPos = pathEndingChunk.position + new Vector3I(0, 0, 1);
+                    nextChunkPos = pathEndingChunk.position + new Vector3I(0, 0, 1) * Math.Sign(endChunk.position.Z - pathEndingChunk.position.Z);
                 }
                 // TODO Is equals by ref suitable? (Like chunk was loaded in and out while pathfinding)
                 // TODO Only working in 2 dimensions

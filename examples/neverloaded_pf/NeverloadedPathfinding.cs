@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Godot;
 
 public partial class NeverloadedPathfinding : Node
@@ -9,32 +10,14 @@ public partial class NeverloadedPathfinding : Node
         var chunkManager = ChunkManager.CreateInstance(chunkSize);
         AddChild(chunkManager);
 
-        for (int i = 0; i < 5; i++)
-        {
-            chunkManager.CreateChunk(new Vector3I(i, 0, 0));
-        }
+        var map = @"
+11110011
+10000010
+10000010
+11111110
+        ";
 
-        chunkManager.CreateChunk(new Vector3I(7, 0, 0));
-        chunkManager.CreateChunk(new Vector3I(8, 0, 0));
-
-        chunkManager.TransformChunks(RandomFill(0));
-
-        GD.Print("ASD");
-
-        await ToSignal(GetTree().CreateTimer(1), Timer.SignalName.Timeout);
-
-        GD.Print("Generating PF");
-        chunkManager.GenerateHierachicalPathfinding();
-        GD.Print("Generated PF");
-
-        await ToSignal(GetTree().CreateTimer(1), Timer.SignalName.Timeout);
-
-        GD.Print("Adding never loaded chunks");
-        chunkManager.CreateChunk(new Vector3I(5, 0, 0));
-        chunkManager.CreateChunk(new Vector3I(6, 0, 0));
-        GD.Print("Added never loaded chunks");
-
-        await ToSignal(GetTree().CreateTimer(1), Timer.SignalName.Timeout);
+        await CreateMapByString(chunkManager, map);
 
         var visualiser = GetNode<NaiveChunkVisualiser>("NaiveChunkVisualiser");
         visualiser.Create(chunkManager);
@@ -55,6 +38,54 @@ public partial class NeverloadedPathfinding : Node
             pathDrawer.SetAgent(agent);
             communityManager.AddAgent(agent);
         }
+    }
+
+    public async Task<object> CreateMapByString(ChunkManager manager, string map)
+    {
+        var lines = map.Split('\n');
+        var x = 0;
+        var z = -1;
+
+        foreach (var line in lines)
+        {
+            x = 0;
+            foreach (char c in line)
+            {
+                if (c == '1')
+                {
+                    manager.CreateChunk(new Vector3I(x, 0, z));
+                }
+                x++;
+            }
+            z++;
+        }
+
+        manager.TransformChunks(RandomFill(0));
+
+        await ToSignal(GetTree().CreateTimer(1), Timer.SignalName.Timeout);
+
+        manager.GenerateHierachicalPathfinding();
+
+        await ToSignal(GetTree().CreateTimer(1), Timer.SignalName.Timeout);
+
+        x = 0;
+        z = -1;
+
+        foreach (var line in lines)
+        {
+            x = 0;
+            foreach (char c in line)
+            {
+                if (c == '0')
+                {
+                    manager.CreateChunk(new Vector3I(x, 0, z));
+                }
+                x++;
+            }
+            z++;
+        }
+
+        return () => {};
     }
 
     public Action<int[,,]> RandomFill(int level)
