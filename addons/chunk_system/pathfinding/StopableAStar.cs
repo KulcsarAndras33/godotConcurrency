@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-public abstract class AStar<T, R> where T : IEquatable<T>
+public abstract class StopableAStar<T, R> where T : IEquatable<T>
 {
     public Func<T, bool> isWalkable { get; set; }
 
@@ -24,6 +24,8 @@ public abstract class AStar<T, R> where T : IEquatable<T>
 
     abstract protected float Distance(T a, T b, R b_node);
 
+    abstract protected bool StopCondition(T current, float currentFScore, T best, float bestFScore);
+
     public List<T> FindPath(T start, T end)
     {
         if (isWalkable == null)
@@ -37,6 +39,8 @@ public abstract class AStar<T, R> where T : IEquatable<T>
         openSet.Enqueue(start, 0);
         gScore[start] = 0;
         fScore[start] = Heuristic(start, end);
+        T closest = start;
+        float closestFScore = fScore[start];
 
         while (openSet.Count > 0)
         {
@@ -44,7 +48,10 @@ public abstract class AStar<T, R> where T : IEquatable<T>
 
             if (current.Equals(end))
                 return ReconstructPath(cameFrom, current);
-            
+
+            if (StopCondition(current, fScore[current], closest, closestFScore))
+                return ReconstructPath(cameFrom, closest);
+
             foreach (var neighbor in GetNeighbors(current))
             {
                 var neighborId = GetId(neighbor);
@@ -58,13 +65,18 @@ public abstract class AStar<T, R> where T : IEquatable<T>
                     cameFrom[neighborId] = current;
                     gScore[neighborId] = tentativeGScore;
                     fScore[neighborId] = tentativeGScore + Heuristic(neighborId, end);
+                    if (fScore[neighborId] < closestFScore)
+                    {
+                        closest = neighborId;
+                        closestFScore = fScore[neighborId];
+                    }
+                    
                     openSet.Enqueue(neighborId, fScore[neighborId]);
                 }
             }
         }
 
-        return new List<T>(); // No path found
+        return ReconstructPath(cameFrom, closest);
     }
-
 
 }

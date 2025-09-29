@@ -1,11 +1,11 @@
-[gd_scene load_steps=4 format=3 uid="uid://dqf6805f7fb1h"]
+[gd_scene load_steps=4 format=3 uid="uid://cav03rag0jpco"]
 
-[ext_resource type="Script" uid="uid://w5i5eqbo63qg" path="res://examples/moving_agents/MovingAgents.cs" id="1_k8rpt"]
+[ext_resource type="Script" uid="uid://dlicdrqn06tb4" path="res://examples/neverloaded_pf/NeverloadedPathfinding.cs" id="1_sa2ql"]
 [ext_resource type="PackedScene" uid="uid://d0jpn0ythmp3h" path="res://examples/utils/NaiveChunkVisualiser.tscn" id="2_1qmcj"]
 [ext_resource type="PackedScene" uid="uid://dvhujevilahaj" path="res://examples/utils/PathVisualiser.tscn" id="3_wocf8"]
 
 [node name="Scene" type="Node2D"]
-script = ExtResource("1_k8rpt")
+script = ExtResource("1_sa2ql")
 
 [node name="NaiveChunkVisualiser" parent="." instance=ExtResource("2_1qmcj")]
 

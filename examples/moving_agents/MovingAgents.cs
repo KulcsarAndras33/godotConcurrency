@@ -39,11 +39,15 @@ public partial class MovingAgents : Node
         var visualiser = GetNode<NaiveChunkVisualiser>("NaiveChunkVisualiser");
         visualiser.Create(chunkManager);
 
+        var pathDrawer = GetNode<PathVisualiser>("PathVisualiser");
+
         var communityManager = new CommunityManager();
         AddChild(communityManager);
         const int AGENT_COUNT = 1;
         for (int i = 0; i < AGENT_COUNT; i++) {
-            communityManager.AddAgent(new MovingAgent());
+            var agent = new MovingAgent();
+            pathDrawer.SetAgent(agent);
+            communityManager.AddAgent(agent);
         }
     }
 

@@ -13,7 +13,8 @@ public class Chunk
     public Vector3I dimensions;
     public Vector3I position;
     public ChunkManager chunkManager;
-    public bool isDetailed { get; private set; } = true;
+    public bool isDetailed { get; private set; } = false;
+    public bool isPathFindingCalculated { get; private set; } = false;
 
     private IEnumerable<Vector3I> GetEdges()
     {
@@ -132,18 +133,24 @@ public class Chunk
     {
         this.dimensions = dimensions;
         this.position = position;
-
-        data = new int[dimensions.X, dimensions.Y, dimensions.Z];
     }
 
     public void Transform(Action<int[,,]> transformer)
     {
+        isPathFindingCalculated = false;
+
+        // TODO Maybe move this to a more explicit method
+        //      to show that this is part of becoming detailed.
+        data = new int[dimensions.X, dimensions.Y, dimensions.Z];
+
         transformer.Invoke(data);
+
+        isDetailed = true;
     }
 
     public int GetData(Vector3I pos)
     {
-        if (!IsInBounds(pos))
+        if (!IsInBounds(pos) || !isDetailed)
             return 0;
 
         return data[pos.X, pos.Y, pos.Z];
@@ -192,6 +199,8 @@ public class Chunk
                 }
             }
         }
+
+        isPathFindingCalculated = true;
     }
 
     public Vector3I ToGlobal(Vector3I localPos)
@@ -217,5 +226,6 @@ public class Chunk
     public void ToAbstract()
     {
         isDetailed = false;
+        data = null;
     }
 }

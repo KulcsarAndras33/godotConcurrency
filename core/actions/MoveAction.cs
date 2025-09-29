@@ -5,6 +5,7 @@ public class MoveAction : AgentAction
 {
     private bool isComplete = false;
     private SingleTaskExecutor executor = new(ChunkManager.GetInstance().threadPool);
+    private Vector3? lastAbstractPos = null;
 
     public List<Vector3I> abstractPath { get; set; }
     public List<Vector3I> detailedPath { get; set; }
@@ -12,14 +13,13 @@ public class MoveAction : AgentAction
 
     private void TakeStep()
     {
-        
         agent.SetPosition(detailedPath[0]);
         detailedPath.RemoveAt(0);
     }
 
     protected override void DetailedNextStep()
     {
-        if (detailedPath != null && detailedPath.Count > 0)
+        if (detailedPath != null && detailedPath.Count > 0 && !executor.IsExecuting())
         {
             TakeStep();
             return;
@@ -29,6 +29,22 @@ public class MoveAction : AgentAction
         {
             // No more steps to take
             isComplete = true;
+            return;
+        }
+
+        // If the next abstract node is just a step away, then take that step
+        // This helps with proper state changing
+        if (((Vector3)abstractPath[0]).DistanceTo(agent.GetPosition()) < 1.1)
+        {
+            agent.SetPosition(abstractPath[0]);
+            abstractPath.RemoveAt(0);
+            return;
+        }
+
+        if (!ChunkManager.GetInstance().GetChunkByPos(abstractPath[0]).isPathFindingCalculated)
+        {
+            agent.SetPosition(abstractPath[0]);
+            abstractPath.RemoveAt(0);
             return;
         }
 
@@ -42,15 +58,27 @@ public class MoveAction : AgentAction
 
     protected override void AbstractNextStep()
     {
-        if (abstractPath == null || abstractPath.Count == 0)
+        if ((abstractPath == null || abstractPath.Count == 0) && lastAbstractPos == null)
         {
             // No more steps to take
             isComplete = true;
             return;
         }
 
-        agent.SetPosition(abstractPath[0]);
-        abstractPath.RemoveAt(0);
+        if (lastAbstractPos != null)
+        {
+            agent.SetPosition((Vector3)lastAbstractPos);
+            abstractPath.RemoveAt(0);
+        }
+
+        if (abstractPath?.Count > 0)
+        {
+            lastAbstractPos = abstractPath[0];
+        }
+        else
+        {
+            lastAbstractPos = null;
+        }
     }
 
     public override bool IsComplete()
@@ -60,7 +88,7 @@ public class MoveAction : AgentAction
 
     protected override ulong GetDetailedTimeout()
     {
-        return (ulong)(executor.IsExecuting() ? 0 : 300);
+        return (ulong)(executor.IsExecuting() ? 0 : 150);
     }
 
     protected override ulong GetAbstractTimeout()
@@ -68,6 +96,6 @@ public class MoveAction : AgentAction
         if (abstractPath == null || abstractPath.Count == 0)
             return 0;
         
-        return (ulong) ChunkManager.GetInstance().GetWeightBetween((Vector3I)agent.GetPosition(), abstractPath[0]) * 300;
+        return (ulong) ChunkManager.GetInstance().GetWeightBetween((Vector3I)agent.GetPosition(), abstractPath[0]) * 150;
     }
 }
