@@ -11,9 +11,14 @@ config_version=5
 [application]
 
 config/name="concurrency"
-config/features=PackedStringArray("4.4", "Forward Plus")
+config/version="0.1.0"
+config/features=PackedStringArray("4.4", "C#", "Forward Plus")
 config/icon="res://icon.svg"
+
+[dotnet]
+
+project/assembly_name="concurrency"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/chunk_system/plugin.cfg", "res://addons/concurrency_plugin/plugin.cfg")
+enabled=PackedStringArray("res://addons/chunk_system/plugin.cfg", "res://addons/executor/plugin.cfg")

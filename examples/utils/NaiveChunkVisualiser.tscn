@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://d0jpn0ythmp3h"]
+
+[ext_resource type="Script" uid="uid://cg1ayel4dlvaw" path="res://examples/utils/NaiveChunkVisualiser.cs" id="1_7xf28"]
+
+[node name="NaiveChunkVisualiser" type="Node3D"]
+script = ExtResource("1_7xf28")

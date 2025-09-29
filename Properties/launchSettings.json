@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "concurrency": {
+      "commandName": "Project"
+    },
+    "Profile 1": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Users\\PC\\Downloads\\Godot_v4.4.1-stable_mono_win64\\Godot_v4.4.1-stable_mono_win64\\Godot_v4.4.1-stable_mono_win64.exe",
+      "commandLineArgs": "--path D:\\Projects\\concurrency --scene D:\\Projects\\concurrency\\examples\\hierachical_pathfinding\\scene.tscn",
+      "nativeDebugging": true
+    }
+  }
+}
