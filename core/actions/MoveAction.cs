@@ -5,6 +5,7 @@ public class MoveAction : AgentAction
 {
     private bool isComplete = false;
     private SingleTaskExecutor executor = new(ChunkManager.GetInstance().threadPool);
+    private Vector3? lastAbstractPos = null;
 
     public List<Vector3I> abstractPath { get; set; }
     public List<Vector3I> detailedPath { get; set; }
@@ -43,6 +44,7 @@ public class MoveAction : AgentAction
         if (!ChunkManager.GetInstance().GetChunkByPos(abstractPath[0]).isPathFindingCalculated)
         {
             agent.SetPosition(abstractPath[0]);
+            abstractPath.RemoveAt(0);
             return;
         }
 
@@ -56,15 +58,27 @@ public class MoveAction : AgentAction
 
     protected override void AbstractNextStep()
     {
-        if (abstractPath == null || abstractPath.Count == 0)
+        if ((abstractPath == null || abstractPath.Count == 0) && lastAbstractPos == null)
         {
             // No more steps to take
             isComplete = true;
             return;
         }
 
-        agent.SetPosition(abstractPath[0]);
-        abstractPath.RemoveAt(0);
+        if (lastAbstractPos != null)
+        {
+            agent.SetPosition((Vector3)lastAbstractPos);
+            abstractPath.RemoveAt(0);
+        }
+
+        if (abstractPath?.Count > 0)
+        {
+            lastAbstractPos = abstractPath[0];
+        }
+        else
+        {
+            lastAbstractPos = null;
+        }
     }
 
     public override bool IsComplete()

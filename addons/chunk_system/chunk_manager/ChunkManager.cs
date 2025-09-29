@@ -165,63 +165,10 @@ public partial class ChunkManager : Node
             }
         }
 
+        currentPath.Add(end);
+
         return currentPath;
     }
-
-    // public List<Vector3I> FindAbstractPath(Vector3I start, Vector3I end)
-    // {
-    //     GD.Print("ASD");
-    //     // TODO This might not be efficient, because we iterate through the whole abstract graph
-    //     int startId = abstractPathfinder.GetClosestVertexId(start);
-    //     int endId = abstractPathfinder.GetClosestVertexId(end);
-
-    //     var endChunk = GetChunkByPos(end);
-    //     GD.Print("INNER");
-    //     var currentPath = abstractPathfinder.FindPathPositions(startId, endId);
-    //     while (GetChunkByPos(currentPath.Last()) != endChunk)
-    //     {
-    //         // We only get here, if we bumped into never-loaded chunks
-
-    //         /*
-    //         NOTE:    Probably should do a whole separate pathfinding for the never-loaded
-    //                  Chunks later
-    //         */
-
-    //         var pathEndingChunk = GetChunkByPos(currentPath.Last());
-
-    //         // TODO Is equals by ref suitable? (Like chunk was loaded in and out while pathfinding)
-    //         // TODO Only working in 2 dimension
-    //         Chunk nextChunk = null;
-    //         while (pathEndingChunk != endChunk)
-    //         {
-    //             Vector3I nextChunkPos;
-    //             if (pathEndingChunk.position.X - endChunk.position.X > pathEndingChunk.position.Z - endChunk.position.Z)
-    //             {
-    //                 nextChunkPos = pathEndingChunk.position + new Vector3I(1, 0, 0);
-    //             }
-    //             else
-    //             {
-    //                 nextChunkPos = pathEndingChunk.position + new Vector3I(0, 0, 1);
-    //             }
-    //             nextChunk = GetChunkByPos(nextChunkPos * dimensions);
-    //             if (nextChunk != null && nextChunk.isDetailed)
-    //             {
-    //                 break;
-    //             }
-
-    //             currentPath.Add(nextChunkPos * dimensions);
-    //         }
-
-    //         if (nextChunk != null && nextChunk.isDetailed)
-    //         {
-    //             var partStartPos = nextChunk.position + dimensions / 2;
-    //             var newPathPart = abstractPathfinder.FindPathPositions(abstractPathfinder.GetClosestVertexId(partStartPos), endId);
-    //             currentPath.AddRange(newPathPart.Skip(1));
-    //         }
-    //     }
-
-    //     return currentPath;
-    // }
 
     public void AddAbstractEdge(Vector3I from, Vector3I to, float weight, bool bidirectional = true)
     {
