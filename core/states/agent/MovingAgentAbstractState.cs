@@ -60,13 +60,7 @@ public class MovingAgentAbstractState : State, IMovingState
 
     protected override void CreateDefaultAction(Action<AgentAction> actionSetter)
     {
-        var goal = agent.communityManager.GetRandomGoal();
-        var newAction = new MoveAction
-        {
-            abstractPath = ChunkManager.GetInstance().FindAbstractPath((Vector3I) position, goal),
-            agent = agent
-        };
-        actionSetter.Invoke(newAction);
+        actionSetter.Invoke(agent.communityManager.AskAgentAction(agent));
     }
 
     public override bool IsDetailed()
