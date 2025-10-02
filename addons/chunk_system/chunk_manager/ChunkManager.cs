@@ -104,6 +104,11 @@ public partial class ChunkManager : Node
         return chunks.Values;
     }
 
+    public Vector3I GetDimensions()
+    {
+        return dimensions;
+    }
+
     public bool IsWalkable(Vector3I pos)
     {
         int data = GetDataByPos(pos + new Vector3I(0, -1, 0));
