@@ -1,9 +1,11 @@
+using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 public partial class MovingAgent : IAgent
 {
     private IMovingState currentState;
-    private AgentAction currentAction;
+    private List<AgentAction> currentActions = new();
 
     public CommunityManager communityManager { get; set; }
 
@@ -22,10 +24,17 @@ public partial class MovingAgent : IAgent
             currentState = currentState.GetNextState() as IMovingState;
         }
 
-        if (currentAction == null || currentAction.IsComplete())
+        if (currentActions.Count == 0)
         {
             currentState.NoActionLeft();
-            currentAction = new IdleAction();
+            currentActions.Add(new IdleAction());
+        }
+
+        var currentAction = currentActions.First();
+
+        if (currentAction == null || currentAction.IsComplete())
+        {
+            currentActions.RemoveAt(0);
         }
         else
         {
@@ -48,9 +57,9 @@ public partial class MovingAgent : IAgent
         currentState.SetPostion(position);
     }
 
-    public void SetAction(AgentAction action)
+    public void SetActions(List<AgentAction> actions)
     {
-        currentAction = action;
+        currentActions = actions;
     }
 
     public Vector3 GetPosition()
@@ -60,11 +69,11 @@ public partial class MovingAgent : IAgent
 
     public MoveAction GetMoveAction()
     {
-        if (currentAction is not MoveAction)
+        if (currentActions.Count == 0 || currentActions.First() is not MoveAction)
         {
             return null;
         }
 
-        return currentAction as MoveAction;
+        return currentActions.First() as MoveAction;
     }
 }

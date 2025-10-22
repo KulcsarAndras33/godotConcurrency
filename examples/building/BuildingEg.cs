@@ -1,7 +1,7 @@
 using System;
 using Godot;
 
-public partial class MovingAgents : Node
+public partial class BuildingEg : Node
 {
 
     private CommunityManager communityManager;
@@ -85,7 +85,8 @@ public partial class MovingAgents : Node
             if (collision != null)
             {
                 GD.Print((Vector3I)collision);
-                communityManager.AddTask(new MoveTask((Vector3I)collision + new Vector3I(0, 1, 0)));
+                BuildTask buildTask = new(new Building((Vector3I)collision + new Vector3I(0, 1, 0)));
+                communityManager.AddTask(buildTask);
             }
         }
     }

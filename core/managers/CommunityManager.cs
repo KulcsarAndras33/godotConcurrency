@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Godot;
 
 public partial class CommunityManager : Node
@@ -11,19 +12,6 @@ public partial class CommunityManager : Node
     private HashSet<IAgent> agents = [];
     private List<ICommunityTask> taskQueue = [];
     private Storage storage = new(1000);
-
-    private ICommunityTask GetFirstNonFullTask(IAgent agent)
-    {
-        foreach (var task in taskQueue)
-        {
-            if (task.NeedsMoreAgent() && task.IsApplicable(agent))
-            {
-                return task;
-            }
-        }
-
-        return null;
-    }
 
     public void AddAgent(IAgent agent)
     {
@@ -54,6 +42,10 @@ public partial class CommunityManager : Node
     public void NotifyNoAction()
     {
         GD.Print("There's an agent without task.");
+
+        // Clear completed tasks
+        taskQueue = [.. taskQueue.Where(task => !task.IsCompleted())];
+
         RedistributeTasks();
     }
     
@@ -74,8 +66,12 @@ public partial class CommunityManager : Node
             {
                 enumerator.MoveNext();
                 var currentAgent = enumerator.Current;
-                currentAgent.SetAction(task.GetAction(currentAgent));
-                activeAgents.Add(currentAgent);
+                // TODO Try this with the threadpool
+                currentAgent.SetActions(task.GetActions(currentAgent));
+                lock (activeAgents)
+                {
+                    activeAgents.Add(currentAgent);
+                }
             }
         }
     }

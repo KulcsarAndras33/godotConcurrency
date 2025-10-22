@@ -34,7 +34,7 @@ public partial class NeverloadedPathfinding : Node
             action.abstractPath = chunkManager.FindAbstractPath(new Vector3I(0, 1, 5), new Vector3I((int)(7.5 * chunkSize.X), 1, 5));
             action.agent = agent;
 
-            agent.SetAction(action);
+            agent.SetActions([action]);
             pathDrawer.SetAgent(agent);
             communityManager.AddAgent(agent);
         }
