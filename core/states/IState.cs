@@ -6,7 +6,7 @@ public interface IState
     public abstract void Exit();
     public abstract void Load();
     public abstract void Unload();
-    public void GetDefaultAction(Action<AgentAction> actionSetter);
+    public void NoActionLeft();
     public bool IsDetailed();
     public bool IsValid();
     public IState GetNextState();

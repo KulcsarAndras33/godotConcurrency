@@ -1,14 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Linq;
+using System.Text.Json;
 using Godot;
 
 public partial class CommunityManager : Node
 {
     private Random random = new();
     private HashSet<IAgent> activeAgents = [];
-    private HashSet<IAgent> idleAgents = [];
-    private HashSet<IAgent> newIdleAgents = [];
+    private HashSet<IAgent> agents = [];
     private List<ICommunityTask> taskQueue = [];
     private Storage storage = new(1000);
 
@@ -25,88 +25,58 @@ public partial class CommunityManager : Node
         return null;
     }
 
-    private bool TrySetActionForAgent(IAgent agent)
-    {
-        var applicableTask = GetFirstNonFullTask(agent);
-        if (applicableTask == null)
-        {
-            return false;
-        }
-
-        agent.SetAction(applicableTask.GetAction(agent));
-        return true;
-    }
-
     public void AddAgent(IAgent agent)
     {
         agent.communityManager = this;
         activeAgents.Add(agent);
-        GD.Print($"Agent added: {activeAgents.Count + idleAgents.Count}");
+        agents.Add(agent);
+        GD.Print($"Agent added: {agents.Count}");
     }
 
     public override void _Process(double delta)
     {
-        foreach (var agent in activeAgents)
+        lock (activeAgents)
         {
-            agent.Tick();
-        }
-
-        lock (newIdleAgents)
-        {
-            foreach (var agent in newIdleAgents)
+            foreach (var agent in activeAgents)
             {
-                GD.Print("Setting agent to idle");
-                activeAgents.Remove(agent);
-                idleAgents.Add(agent);
+                agent.Tick();
             }
-            newIdleAgents.Clear();
         }
-    }
-
-    public AgentAction AskAgentAction(IAgent agent)
-    {
-        if (taskQueue.Count == 0)
-        {
-            lock (newIdleAgents)
-            {
-                newIdleAgents.Add(agent);
-            }
-            return new IdleAction();
-        }
-
-        var applicableTask = GetFirstNonFullTask(agent);
-        if (applicableTask != null)
-        {
-            return applicableTask.GetAction(agent);
-        }
-
-        lock (newIdleAgents)
-        {
-            newIdleAgents.Add(agent);
-        }
-        return new IdleAction();
     }
 
     public void AddTask(ICommunityTask task)
     {
         GD.Print("Adding task");
-        GD.Print($"active agents: {activeAgents.Count}, idle agents: {idleAgents.Count}");
         taskQueue.Add(task);
-        List<IAgent> newActiveAgents = [];
-        foreach (var agent in idleAgents)
+        RedistributeTasks();
+    }
+
+    public void NotifyNoAction()
+    {
+        GD.Print("There's an agent without task.");
+        RedistributeTasks();
+    }
+    
+    // This method DOES NOT take current task distribution into consideration
+    // This is temporary
+    public void RedistributeTasks()
+    {
+        GD.Print("Totally redistributing tasks.");
+        TaskDistribution distribution = TaskDistributor.Distribute(taskQueue, agents.Count);
+        lock (activeAgents) {
+            activeAgents.Clear();
+        }
+        var enumerator = agents.GetEnumerator();
+
+        foreach (var task in distribution.TasksWithWorkforce.Keys)
         {
-            if (TrySetActionForAgent(agent))
+            for (int j = 0; j < distribution.TasksWithWorkforce[task]; j++)
             {
-                newActiveAgents.Add(agent);
+                enumerator.MoveNext();
+                var currentAgent = enumerator.Current;
+                currentAgent.SetAction(task.GetAction(currentAgent));
+                activeAgents.Add(currentAgent);
             }
         }
-
-        foreach (var agent in newActiveAgents)
-        {
-            idleAgents.Remove(agent);
-            activeAgents.Add(agent);
-        }
-        
-        GD.Print($"active agents: {activeAgents.Count}, idle agents: {idleAgents.Count}");
     }
  }

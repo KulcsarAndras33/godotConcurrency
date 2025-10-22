@@ -24,10 +24,8 @@ public partial class MovingAgent : IAgent
 
         if (currentAction == null || currentAction.IsComplete())
         {
-            currentState.GetDefaultAction(action =>
-            {
-                currentAction = action;
-            });
+            currentState.NoActionLeft();
+            currentAction = new IdleAction();
         }
         else
         {

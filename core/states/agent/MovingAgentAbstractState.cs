@@ -2,7 +2,7 @@
 using System;
 using Godot;
 
-public class MovingAgentAbstractState : State, IMovingState
+public class MovingAgentAbstractState : IMovingState
 {
     private Chunk currChunk;
 
@@ -15,18 +15,23 @@ public class MovingAgentAbstractState : State, IMovingState
         this.position = position;
     }
 
-    public override void Enter()
+    public void Enter()
     {
         GD.Print("Entering MovingAgentAbstractState");
     }
 
-    public override void Exit()
+    public void Exit()
     {
     }
 
-    public override void Load()
+    public void Load()
     {
         GD.Print("Loading resources for MovingAgentAbstractState");
+    }
+
+    public void Unload()
+    {
+        GD.Print("Unloading resources for MovingAgentAbstractState");
     }
 
     public void SetPostion(Vector3 position)
@@ -53,30 +58,25 @@ public class MovingAgentAbstractState : State, IMovingState
         return position;
     }
 
-    public override void Unload()
-    {
-        GD.Print("Unloading resources for MovingAgentAbstractState");
-    }
-
-    protected override void CreateDefaultAction(Action<AgentAction> actionSetter)
-    {
-        actionSetter.Invoke(agent.communityManager.AskAgentAction(agent));
-    }
-
-    public override bool IsDetailed()
+    public  bool IsDetailed()
     {
         return false;
     }
 
-    public override bool IsValid()
+    public  bool IsValid()
     {
         return !currChunk?.isDetailed ?? true;
     }
 
-    public override IState GetNextState()
+    public  IState GetNextState()
     {
         var nextState = new MovingAgentDetailedState(agent, position);
         nextState.Enter();
         return nextState;
+    }
+
+    public void NoActionLeft()
+    {
+        agent.communityManager.NotifyNoAction();
     }
 }
