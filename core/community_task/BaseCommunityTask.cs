@@ -26,4 +26,9 @@ public abstract class BaseCommunityTask : ICommunityTask
     {
         return currentAgents.Count < agentsNeeded;
     }
+
+    public virtual float GetPriority()
+    {
+        return 5;
+    }
 }

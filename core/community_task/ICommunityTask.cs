@@ -4,4 +4,5 @@ public interface ICommunityTask
     public AgentAction GetAction(IAgent agent);
     public bool NeedsMoreAgent();
     public bool IsCompleted();
+    public float GetPriority();
 }

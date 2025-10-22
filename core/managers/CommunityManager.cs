@@ -10,6 +10,7 @@ public partial class CommunityManager : Node
     private HashSet<IAgent> idleAgents = [];
     private HashSet<IAgent> newIdleAgents = [];
     private List<ICommunityTask> taskQueue = [];
+    private Storage storage = new(1000);
 
     private ICommunityTask GetFirstNonFullTask(IAgent agent)
     {

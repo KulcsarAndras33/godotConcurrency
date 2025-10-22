@@ -23,7 +23,8 @@ public class MoveTask : BaseCommunityTask
 
     protected override AgentAction CreateAction(IAgent agent)
     {
-        if (agent is not MovingAgent) {
+        if (agent is not MovingAgent)
+        {
             throw new ArgumentException("Agent for MoveTask shall be MovingAgent.");
         }
         var movingAgent = agent as MovingAgent;
@@ -34,5 +35,10 @@ public class MoveTask : BaseCommunityTask
             agent = movingAgent
         };
         return action;
+    }
+    
+    public override float GetPriority()
+    {
+        return 10;
     }
 }
