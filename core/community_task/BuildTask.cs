@@ -4,7 +4,7 @@ using Godot;
 
 public class BuildTask : BaseCommunityTask
 {
-    private readonly float MAX_BUILD_DISTANCE = 0.8f;
+    private readonly float MAX_BUILD_DISTANCE = 1.5f;
     // TODO Temporary
     private readonly Vector3I BUILDING_MOVE_OFFSET = new Vector3I(0, 0, 1);
 

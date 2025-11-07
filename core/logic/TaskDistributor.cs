@@ -4,7 +4,7 @@ using System.Linq;
 
 public class TaskDistributor
 {
-    static float WORKFORCE_UNIT = 1;
+    static readonly float WORKFORCE_UNIT = 1;
 
     // TODO This will get the buildings as well
     public static TaskDistribution Distribute(List<ICommunityTask> playerTasks, float workforce)

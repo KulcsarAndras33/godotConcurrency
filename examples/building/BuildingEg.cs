@@ -1,92 +1,95 @@
 using System;
 using Godot;
 
-public partial class BuildingEg : Node
+namespace Example
 {
-
-    private CommunityManager communityManager;
-
-    public async override void _Ready()
+    public partial class BuildingEg : Node
     {
-        Vector3I chunkSize = new(20, 2, 20);
-        var chunkManager = ChunkManager.CreateInstance(chunkSize);
-        AddChild(chunkManager);
-        for (int i = 0; i < 5; i++)
+
+        private CommunityManager communityManager;
+
+        public async override void _Ready()
         {
-            for (int j = 0; j < 5; j++)
+            Vector3I chunkSize = new(20, 2, 20);
+            var chunkManager = ChunkManager.CreateInstance(chunkSize);
+            AddChild(chunkManager);
+            for (int i = 0; i < 5; i++)
             {
-                chunkManager.CreateChunk(new Vector3I(i, 0, j));
-            }
-        }
-        chunkManager.TransformChunks(RandomFill(0));
-
-        await ToSignal(GetTree().CreateTimer(1), Timer.SignalName.Timeout);
-
-        chunkManager.GenerateHierachicalPathfinding();
-
-        await ToSignal(GetTree().CreateTimer(1), Timer.SignalName.Timeout);
-
-        for (int x = 0; x < 5; x++)
-        {
-            for (int z = 0; z < 5; z++)
-            {
-                if ((x + z) % 2 == 1)
+                for (int j = 0; j < 5; j++)
                 {
-                    chunkManager.SetChunkToAbstract(new Vector3I(x, 0, z) * chunkSize);
+                    chunkManager.CreateChunk(new Vector3I(i, 0, j));
                 }
             }
-        }
+            chunkManager.TransformChunks(RandomFill(0));
 
-        var visualiser = GetNode<NaiveChunkVisualiser>("NaiveChunkVisualiser");
-        visualiser.Create(chunkManager);
+            await ToSignal(GetTree().CreateTimer(1), Timer.SignalName.Timeout);
 
-        var pathDrawer = GetNode<PathVisualiser>("PathVisualiser");
+            chunkManager.GenerateHierachicalPathfinding();
 
-        communityManager = new CommunityManager();
-        AddChild(communityManager);
-        const int AGENT_COUNT = 5;
-        for (int i = 0; i < AGENT_COUNT; i++)
-        {
-            var agent = new MovingAgent();
-            pathDrawer.SetAgent(agent);
-            communityManager.AddAgent(agent);
-        }
-    }
+            await ToSignal(GetTree().CreateTimer(1), Timer.SignalName.Timeout);
 
-    public Action<int[,,]> RandomFill(int level)
-    {
-        return data =>
-        {
-            var rand = new Random();
-            for (int x = 0; x < data.GetLength(0); x++)
+            for (int x = 0; x < 5; x++)
             {
-                for (int z = 0; z < data.GetLength(2); z++)
+                for (int z = 0; z < 5; z++)
                 {
-                    if (rand.NextDouble() < 0.9)
+                    if ((x + z) % 2 == 1)
                     {
-                        data[x, level, z] = 1;
+                        chunkManager.SetChunkToAbstract(new Vector3I(x, 0, z) * chunkSize);
                     }
                 }
             }
-        };
-    }
-    
-    public override void _Input(InputEvent @event)
-    {
-        if (@event is InputEventMouseButton eventMouseButton)
-        {
-            if (eventMouseButton.Pressed)
-                return;
-            var camera = GetNode<Camera3D>("Camera3D");
-            var point = camera.ProjectPosition(eventMouseButton.Position, 1);
-            var dir = point - camera.GlobalPosition;
-            var rayCast = new ChunkRaycast(camera.GlobalPosition, dir.Normalized(), 150);
-            var collision = rayCast.GetClosestHit();
-            if (collision != null)
+
+            var visualiser = GetNode<NaiveChunkVisualiser>("NaiveChunkVisualiser");
+            visualiser.Create(chunkManager);
+
+            var pathDrawer = GetNode<PathVisualiser>("PathVisualiser");
+
+            communityManager = new CommunityManager();
+            AddChild(communityManager);
+            const int AGENT_COUNT = 5;
+            for (int i = 0; i < AGENT_COUNT; i++)
             {
-                GD.Print((Vector3I)collision);
-                BuildTask buildTask = new(new Building((Vector3I)collision + new Vector3I(0, 1, 0)));
-                communityManager.AddTask(buildTask);
+                var agent = new MovingAgent();
+                pathDrawer.SetAgent(agent);
+                communityManager.AddAgent(agent);
+            }
+        }
+
+        public Action<int[,,]> RandomFill(int level)
+        {
+            return data =>
+            {
+                var rand = new Random();
+                for (int x = 0; x < data.GetLength(0); x++)
+                {
+                    for (int z = 0; z < data.GetLength(2); z++)
+                    {
+                        if (rand.NextDouble() < 0.9)
+                        {
+                            data[x, level, z] = 1;
+                        }
+                    }
+                }
+            };
+        }
+
+        public override void _Input(InputEvent @event)
+        {
+            if (@event is InputEventMouseButton eventMouseButton)
+            {
+                if (eventMouseButton.Pressed)
+                    return;
+                var camera = GetNode<Camera3D>("Camera3D");
+                var point = camera.ProjectPosition(eventMouseButton.Position, 1);
+                var dir = point - camera.GlobalPosition;
+                var rayCast = new ChunkRaycast(camera.GlobalPosition, dir.Normalized(), 150);
+                var collision = rayCast.GetClosestHit();
+                if (collision != null)
+                {
+                    GD.Print((Vector3I)collision);
+                    BuildTask buildTask = new(new Building((Vector3I)collision + new Vector3I(0, 1, 0)));
+                    communityManager.AddTask(buildTask);
+                }
             }
         }
     }
