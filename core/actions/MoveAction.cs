@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 public class MoveAction : AgentAction
@@ -41,7 +42,7 @@ public class MoveAction : AgentAction
             return;
         }
 
-        if (!ChunkManager.GetInstance().GetChunkByPos(abstractPath[0]).isPathFindingCalculated)
+        if (!ChunkManager.GetInstance().GetChunkByPos(abstractPath[0]).IsPathFindingCalculated)
         {
             agent.SetPosition(abstractPath[0]);
             abstractPath.RemoveAt(0);
@@ -51,6 +52,12 @@ public class MoveAction : AgentAction
         executor.TryExecute(() =>
         {
             detailedPath = ChunkManager.GetInstance().FindPath((Vector3I)agent.GetPosition(), abstractPath[0]);
+            if (detailedPath.Count == 0)
+            {
+                GD.PushWarning("Could not find detailed path.");
+                abstractPath = ChunkManager.GetInstance().FindAbstractPath((Vector3I)agent.GetPosition(), abstractPath.Last());
+                return;
+            }
             detailedPath.RemoveAt(0); // Remove first pos from path, since path contains start pos
             abstractPath.RemoveAt(0);
         });
@@ -95,7 +102,7 @@ public class MoveAction : AgentAction
     {
         if (abstractPath == null || abstractPath.Count == 0)
             return 0;
-        
-        return (ulong) ChunkManager.GetInstance().GetWeightBetween((Vector3I)agent.GetPosition(), abstractPath[0]) * 150;
+
+        return (ulong)ChunkManager.GetInstance().GetWeightBetween((Vector3I)agent.GetPosition(), abstractPath[0]) * 150;
     }
 }

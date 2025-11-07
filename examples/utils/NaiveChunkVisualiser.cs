@@ -8,7 +8,7 @@ public partial class NaiveChunkVisualiser : Node3D
     {
         foreach (Chunk chunk in chunkManager.GetChunks())
         {
-            if (!chunk.isDetailed)
+            if (!chunk.IsDetailed)
                 continue;
             for (int x = 0; x < chunk.dimensions.X; x++)
             {

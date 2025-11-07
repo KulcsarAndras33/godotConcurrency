@@ -39,14 +39,14 @@ public class MovingAgentDetailedState : IMovingState
     public void SetPostion(Vector3 position)
     {
         var chunkManager = ChunkManager.GetInstance();
-        var newChunk = chunkManager.GetChunkByPos((Vector3I) position);
+        var newChunk = chunkManager.GetChunkByPos((Vector3I)position);
         if (currChunk != newChunk)
         {
             currChunk?.RemoveAgent(agent);
             newChunk.AddAgent(agent);
         }
 
-        if (!newChunk.isDetailed)
+        if (!newChunk.IsDetailed)
         {
             Exit();
         }
@@ -73,7 +73,7 @@ public class MovingAgentDetailedState : IMovingState
 
     public bool IsValid()
     {
-        return currChunk?.isDetailed ?? true;
+        return currChunk?.IsDetailed ?? true;
     }
 
     public IState GetNextState()

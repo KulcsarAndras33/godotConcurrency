@@ -62,9 +62,10 @@ public class ChunkRaycast
         }
     }
 
-    private bool IsChunkDetailed(Vector3 detailedPos) {
+    private bool IsChunkDetailed(Vector3 detailedPos)
+    {
         var chunk = chunkManager.GetChunkByPos((Vector3I)detailedPos);
-        return chunk != null && chunk.isDetailed;
+        return chunk != null && chunk.IsDetailed;
     }
 
     private void Jump(Vector3 ratio)

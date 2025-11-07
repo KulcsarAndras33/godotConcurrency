@@ -4,21 +4,22 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
-// TODO Nothing is setup for concurrency currently
+// TODO Mostly nothing is setup for concurrency currently
 public class Chunk
 {
     private int[,,] data;
     private List<IAgent> agents = new();
+    private readonly SingleTaskExecutor HPFExecutor;
 
     public Vector3I dimensions;
     public Vector3I position;
     public ChunkManager chunkManager;
-    public bool isDetailed { get; private set; } = false;
-    public bool isPathFindingCalculated { get; private set; } = false;
+    public bool IsDetailed { get; private set; } = false;
+    public bool IsPathFindingCalculated { get; private set; } = false;
 
     private IEnumerable<Vector3I> GetEdges()
     {
-        List<Vector3I> edges = new();
+        List<Vector3I> edges = [];
 
         for (int x = 0; x < dimensions.X; x++)
         {
@@ -129,15 +130,18 @@ public class Chunk
         return neighbors;
     }
 
-    public Chunk(Vector3I dimensions, Vector3I position)
+    public Chunk(Vector3I dimensions, Vector3I position, ChunkManager chunkManager)
     {
         this.dimensions = dimensions;
         this.position = position;
+        this.chunkManager = chunkManager;
+
+        HPFExecutor = new(chunkManager.threadPool);
     }
 
     public void Transform(Action<int[,,]> transformer)
     {
-        isPathFindingCalculated = false;
+        IsPathFindingCalculated = false;
 
         // TODO Maybe move this to a more explicit method
         //      to show that this is part of becoming detailed.
@@ -145,17 +149,46 @@ public class Chunk
 
         transformer.Invoke(data);
 
-        isDetailed = true;
+        IsDetailed = true;
+    }
+
+    public void SetData(Vector3I pos, int data)
+    {
+        pos = ToLocal(pos);
+        lock (this)
+        {
+            if (!IsInBounds(pos))
+            {
+                throw new Exception($"Trying to add data to a position not within the chunk. Pos: {pos}");
+            }
+
+            if (!IsDetailed)
+                // TODO Custom Exception?
+                throw new Exception($"Adding data to abstract chunk is not allowed! Pos: {pos} Data: {data}");
+
+            this.data[pos.X, pos.Y, pos.Z] = data;
+            GD.Print($"Added data {data} to {ToGlobal(pos)}");
+        }
+
+        // Currently nothing actually considers the values of this
+        IsPathFindingCalculated = false;
+
+        HPFExecutor.TryExecute(GenerateHierarchicalPathfinding);
     }
 
     public int GetData(Vector3I pos)
     {
-        if (!IsInBounds(pos) || !isDetailed)
+        if (!IsInBounds(pos) || !IsDetailed)
             return 0;
 
         return data[pos.X, pos.Y, pos.Z];
     }
 
+    /// <summary>
+    /// Uses local position.
+    /// </summary>
+    /// <param name="pos">Local position</param>
+    /// <returns>Whether the position is contained by the chunk.</returns>
     public bool IsInBounds(Vector3I pos)
     {
         return pos.X >= 0 && pos.X < dimensions.X &&
@@ -200,7 +233,7 @@ public class Chunk
             }
         }
 
-        isPathFindingCalculated = true;
+        IsPathFindingCalculated = true;
     }
 
     public Vector3I ToGlobal(Vector3I localPos)
@@ -225,7 +258,7 @@ public class Chunk
 
     public void ToAbstract()
     {
-        isDetailed = false;
+        IsDetailed = false;
         data = null;
     }
 }

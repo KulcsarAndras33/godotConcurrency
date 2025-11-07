@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
-using System.Threading.Tasks;
 using Godot;
 
 public partial class CommunityManager : Node
@@ -12,6 +10,7 @@ public partial class CommunityManager : Node
     private HashSet<IAgent> agents = [];
     private List<ICommunityTask> taskQueue = [];
     private Storage storage = new(1000);
+    private bool taskRedistributionNeeded = false;
 
     public void AddAgent(IAgent agent)
     {
@@ -30,13 +29,18 @@ public partial class CommunityManager : Node
                 agent.Tick();
             }
         }
+
+        if (taskRedistributionNeeded)
+        {
+            RedistributeTasks();
+        }
     }
 
     public void AddTask(ICommunityTask task)
     {
         GD.Print("Adding task");
         taskQueue.Add(task);
-        RedistributeTasks();
+        taskRedistributionNeeded = true;
     }
 
     public void NotifyNoAction()
@@ -46,16 +50,19 @@ public partial class CommunityManager : Node
         // Clear completed tasks
         taskQueue = [.. taskQueue.Where(task => !task.IsCompleted())];
 
-        RedistributeTasks();
+        taskRedistributionNeeded = true;
     }
-    
+
     // This method DOES NOT take current task distribution into consideration
     // This is temporary
     public void RedistributeTasks()
     {
         GD.Print("Totally redistributing tasks.");
+        taskRedistributionNeeded = false;
+
         TaskDistribution distribution = TaskDistributor.Distribute(taskQueue, agents.Count);
-        lock (activeAgents) {
+        lock (activeAgents)
+        {
             activeAgents.Clear();
         }
         var enumerator = agents.GetEnumerator();
@@ -75,4 +82,4 @@ public partial class CommunityManager : Node
             }
         }
     }
- }
+}

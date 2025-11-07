@@ -5,9 +5,18 @@ public class Building : IGridObject
     static PackedScene EXAMPLE_SCENE = GD.Load<PackedScene>("res://examples/utils/Building.tscn");
 
     private int builtLevel = 0;
-    private int maxBuiltLevel = 100;
-    private Node3D node; // This could later be migrated into a detailed state if needed.
+    private readonly int maxBuiltLevel = 100;
+    private readonly Node3D node; // This could later be migrated into a detailed state if needed.
     private Vector3I position;
+
+    private void AddBuildingToChunkSystem()
+    {
+        var chunkManager = ChunkManager.GetInstance();
+        var chunk = chunkManager.GetChunkByPos(position);
+
+        // This was written when data == 1 was walkable, everything else not walkable.
+        chunk.SetData(position, 2);
+    }
 
     public Building(Vector3I position)
     {
@@ -19,6 +28,11 @@ public class Building : IGridObject
 
     public void Build(int amount)
     {
+        if (builtLevel >= maxBuiltLevel)
+        {
+            GD.Print("Trying to build an already built building.");
+        }
+
         if (builtLevel < maxBuiltLevel)
         {
             builtLevel += amount;
@@ -26,7 +40,8 @@ public class Building : IGridObject
 
         if (builtLevel >= maxBuiltLevel)
         {
-            GD.Print("Buidling is built.");
+            GD.Print("building is built.");
+            AddBuildingToChunkSystem();
         }
     }
 
