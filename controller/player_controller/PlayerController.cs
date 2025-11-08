@@ -16,6 +16,7 @@ namespace Controller
         private NaiveChunkVisualiser chunkVisualiser;
         private readonly Library<ResourceDescriptor> resourceLibrary = Library<ResourceDescriptor>.GetInstance();
         private readonly Library<BuildingDescriptor> buildingLibrary = Library<BuildingDescriptor>.GetInstance();
+        private readonly Library<AgentDescriptor> agentLibrary = Library<AgentDescriptor>.GetInstance();
         private int chosenBuildingId = 0;
 
         private void PrintResources()

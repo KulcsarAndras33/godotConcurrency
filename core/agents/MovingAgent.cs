@@ -1,17 +1,21 @@
 using System.Collections.Generic;
 using System.Linq;
+using core.models.descriptor;
 using Godot;
 
 public partial class MovingAgent : IAgent
 {
+    private readonly int descriptorId;
     private IMovingState currentState;
     private List<AgentAction> currentActions = [];
 
     public CommunityManager communityManager { get; set; }
     public Chunk CurrentChunk { get; set; }
 
-    public MovingAgent()
+    public MovingAgent(int descriptorId)
     {
+        this.descriptorId = descriptorId;
+
         currentState = new MovingAgentDetailedState(this, new Vector3(0, 1, 0));
         currentState.Load();
         currentState.Enter();
@@ -100,4 +104,8 @@ public partial class MovingAgent : IAgent
         currentActions.First().HandleStateChange();
     }
 
+    public AgentDescriptor GetDescriptor()
+    {
+        return Library<AgentDescriptor>.GetInstance().GetDescriptorById(descriptorId);
+    }
 }

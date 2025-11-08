@@ -48,7 +48,7 @@ namespace Example
             const int AGENT_COUNT = 5;
             for (int i = 0; i < AGENT_COUNT; i++)
             {
-                var agent = new MovingAgent();
+                var agent = new MovingAgent(0);
                 pathDrawer.SetAgent(agent);
                 communityManager.AddAgent(agent);
             }
