@@ -6,6 +6,12 @@ public partial class NaiveChunkVisualiser : Node3D
 
     public void Create(ChunkManager chunkManager)
     {
+        foreach (var child in GetChildren())
+        {
+            RemoveChild(child);
+            child.QueueFree();
+        }
+
         foreach (Chunk chunk in chunkManager.GetChunks())
         {
             if (!chunk.IsDetailed)

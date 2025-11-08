@@ -4,8 +4,6 @@ using Godot;
 
 public class MovingAgentAbstractState : IMovingState
 {
-    private Chunk currChunk;
-
     public MovingAgent agent;
     public Vector3 position;
 
@@ -38,18 +36,13 @@ public class MovingAgentAbstractState : IMovingState
     {
         var chunkManager = ChunkManager.GetInstance();
         var newChunk = chunkManager.GetChunkByPos((Vector3I)position);
-        if (currChunk != newChunk)
+        if (agent.CurrentChunk != newChunk)
         {
-            currChunk?.RemoveAgent(agent);
+            agent.CurrentChunk?.RemoveAgent(agent);
             newChunk.AddAgent(agent);
         }
 
-        if (newChunk.IsDetailed)
-        {
-            Exit();
-        }
-
-        currChunk = newChunk;
+        agent.CurrentChunk = newChunk;
         this.position = position;
     }
 
@@ -65,11 +58,13 @@ public class MovingAgentAbstractState : IMovingState
 
     public bool IsValid()
     {
-        return !currChunk?.IsDetailed ?? true;
+        return !agent.CurrentChunk?.IsDetailed ?? true;
     }
 
     public IState GetNextState()
     {
+        Exit();
+
         var nextState = new MovingAgentDetailedState(agent, position);
         nextState.Enter();
         return nextState;

@@ -11,6 +11,7 @@ public class ChunkRaycast
     private Vector3 blockRatio;
     private float maxLength;
     private ChunkManager chunkManager;
+    private Chunk hitChunk = null;
 
     public ChunkRaycast(Vector3 origin, Vector3 direction, float maxLength)
     {
@@ -65,7 +66,13 @@ public class ChunkRaycast
     private bool IsChunkDetailed(Vector3 detailedPos)
     {
         var chunk = chunkManager.GetChunkByPos((Vector3I)detailedPos);
-        return chunk != null && chunk.IsDetailed;
+        if (chunk == null)
+        {
+            return false;
+        }
+
+        hitChunk = chunk;
+        return chunk.IsDetailed;
     }
 
     private void Jump(Vector3 ratio)
@@ -90,6 +97,17 @@ public class ChunkRaycast
         }
 
         return null;
+    }
+
+    /// <returns>The first chunk it hit, even if it is abstract.</returns>
+    public Chunk GetChunkHit()
+    {
+        while (origin.DistanceTo(currentPosition) < maxLength && hitChunk == null)
+        {
+            ChunkLevelRaycast();
+        }
+
+        return hitChunk;
     }
 
 }

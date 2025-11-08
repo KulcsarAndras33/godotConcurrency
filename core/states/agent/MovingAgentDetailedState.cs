@@ -1,12 +1,8 @@
-
-using System;
 using Godot;
 
 public class MovingAgentDetailedState : IMovingState
 {
     static PackedScene EXAMPLE_SCENE = GD.Load<PackedScene>("res://examples/utils/Agent.tscn");
-
-    private Chunk currChunk;
 
     public MovingAgent agent;
     public Vector3 position;
@@ -28,7 +24,8 @@ public class MovingAgentDetailedState : IMovingState
 
     public void Exit()
     {
-        node.QueueFree();
+        node?.QueueFree();
+        node = null;
     }
 
     public void Load()
@@ -40,17 +37,12 @@ public class MovingAgentDetailedState : IMovingState
     {
         var chunkManager = ChunkManager.GetInstance();
         var newChunk = chunkManager.GetChunkByPos((Vector3I)position);
-        if (currChunk != newChunk)
+        if (agent.CurrentChunk != newChunk)
         {
-            currChunk?.RemoveAgent(agent);
+            agent.CurrentChunk?.RemoveAgent(agent);
             newChunk.AddAgent(agent);
+            agent.CurrentChunk = newChunk;
         }
-
-        if (!newChunk.IsDetailed)
-        {
-            Exit();
-        }
-        currChunk = newChunk;
 
         this.position = position;
         node.GlobalPosition = position;
@@ -73,11 +65,13 @@ public class MovingAgentDetailedState : IMovingState
 
     public bool IsValid()
     {
-        return currChunk?.IsDetailed ?? true;
+        return agent.CurrentChunk?.IsDetailed ?? true;
     }
 
     public IState GetNextState()
     {
+        Exit();
+
         var nextState = new MovingAgentAbstractState(agent, position);
         nextState.Load();
         nextState.Enter();

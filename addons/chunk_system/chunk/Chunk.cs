@@ -8,7 +8,9 @@ using Godot;
 public class Chunk
 {
     private int[,,] data;
+    private int[,,] backupData; // THIS IS TEMPORARY it mocks the data being written to file
     private List<IAgent> agents = new();
+    private readonly HashSet<Building> buildings = [];
     private readonly SingleTaskExecutor HPFExecutor;
 
     public Vector3I dimensions;
@@ -256,9 +258,74 @@ public class Chunk
         agents.Remove(agent);
     }
 
+    public void AddBuilding(Building building)
+    {
+        // This was written when data == 1 was walkable, everything else not walkable.
+        SetData(building.GetPosition(), 2);
+        buildings.Add(building);
+    }
+
     public void ToAbstract()
     {
-        IsDetailed = false;
-        data = null;
+        lock (this)
+        {
+            IsDetailed = false;
+            backupData = new int[dimensions.X, dimensions.Y, dimensions.Z];
+
+            // Saving data to backup -> This mocks file usage for now
+            for (int x = 0; x < dimensions.X; x++)
+            {
+                for (int y = 0; y < dimensions.Y; y++)
+                {
+                    for (int z = 0; z < dimensions.Z; z++)
+                    {
+                        backupData[x, y, z] = data[x, y, z];
+                    }
+                }
+            }
+
+            data = null;
+
+            foreach (var building in buildings)
+            {
+                building.ToAbstract();
+            }
+            foreach (var agent in agents)
+            {
+                agent.ToAbstract();
+            }
+        }
+    }
+
+    public void ToDetailed()
+    {
+        lock (this)
+        {
+            IsDetailed = true;
+            data = new int[dimensions.X, dimensions.Y, dimensions.Z];
+
+            // Loading data from backup -> This mocks file usage for now
+            for (int x = 0; x < dimensions.X; x++)
+            {
+                for (int y = 0; y < dimensions.Y; y++)
+                {
+                    for (int z = 0; z < dimensions.Z; z++)
+                    {
+                        data[x, y, z] = backupData[x, y, z];
+                    }
+                }
+            }
+
+            backupData = null;
+
+            foreach (var building in buildings)
+            {
+                building.ToDetailed();
+            }
+            foreach (var agent in agents)
+            {
+                agent.ToDetailed();
+            }
+        }
     }
 }

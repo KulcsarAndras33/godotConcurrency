@@ -105,4 +105,13 @@ public class MoveAction : AgentAction
 
         return (ulong)ChunkManager.GetInstance().GetWeightBetween((Vector3I)agent.GetPosition(), abstractPath[0]) * 150;
     }
+
+    public override void HandleStateChange()
+    {
+        ResetNextStepTime();
+
+        abstractPath.InsertRange(0, detailedPath);
+        detailedPath.Clear();
+    }
+
 }

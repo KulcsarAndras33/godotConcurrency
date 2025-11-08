@@ -6,7 +6,7 @@ public class Building : IGridObject
 
     private int builtLevel = 0;
     private readonly int maxBuiltLevel = 100;
-    private readonly Node3D node; // This could later be migrated into a detailed state if needed.
+    private Node3D node; // This could later be migrated into a detailed state if needed.
     private Vector3I position;
 
     private void AddBuildingToChunkSystem()
@@ -14,16 +14,17 @@ public class Building : IGridObject
         var chunkManager = ChunkManager.GetInstance();
         var chunk = chunkManager.GetChunkByPos(position);
 
-        // This was written when data == 1 was walkable, everything else not walkable.
-        chunk.SetData(position, 2);
+        chunk.AddBuilding(this);
     }
 
+    /// <summary>
+    /// By default, building starts in the detailed state.
+    /// </summary>
+    /// <param name="position"></param>
     public Building(Vector3I position)
     {
         this.position = position;
-        node = EXAMPLE_SCENE.Instantiate<Node3D>();
-        ChunkManager.GetInstance().GetTree().Root.AddChild(node);
-        node.Position = position;
+        ToDetailed();
     }
 
     public void Build(int amount)
@@ -53,5 +54,17 @@ public class Building : IGridObject
     public Vector3I GetPosition()
     {
         return position;
+    }
+
+    public void ToAbstract()
+    {
+        node.QueueFree();
+    }
+
+    public void ToDetailed()
+    {
+        node = EXAMPLE_SCENE.Instantiate<Node3D>();
+        ChunkManager.GetInstance().GetTree().Root.AddChild(node);
+        node.Position = position;
     }
 }

@@ -5,9 +5,10 @@ using Godot;
 public partial class MovingAgent : IAgent
 {
     private IMovingState currentState;
-    private List<AgentAction> currentActions = new();
+    private List<AgentAction> currentActions = [];
 
     public CommunityManager communityManager { get; set; }
+    public Chunk CurrentChunk { get; set; }
 
     public MovingAgent()
     {
@@ -76,4 +77,28 @@ public partial class MovingAgent : IAgent
 
         return currentActions.First() as MoveAction;
     }
+
+    public void ToAbstract()
+    {
+        GD.Print("Forces to abstract.");
+        // This works based on the assumption that the MovingAgent only has two states,
+        //      one detailed, and one abstract.
+        if (currentState.IsDetailed())
+        {
+            currentState = currentState.GetNextState() as IMovingState;
+        }
+        currentActions.First().HandleStateChange();
+    }
+
+    public void ToDetailed()
+    {
+        // This works based on the assumption that the MovingAgent only has two states,
+        //      one detailed, and one abstract.
+        if (!currentState.IsDetailed())
+        {
+            currentState = currentState.GetNextState() as IMovingState;
+        }
+        currentActions.First().HandleStateChange();
+    }
+
 }

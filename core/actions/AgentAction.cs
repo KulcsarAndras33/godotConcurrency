@@ -9,6 +9,10 @@ public abstract class AgentAction
 
     protected abstract void DetailedNextStep();
     protected abstract void AbstractNextStep();
+    protected void ResetNextStepTime()
+    {
+        nextStepTime = 0;
+    }
 
     public void DoDetailedStep()
     {
@@ -27,4 +31,7 @@ public abstract class AgentAction
     {
         return nextStepTime > Time.GetTicksMsec();
     }
+
+    public virtual void HandleStateChange()
+    { }
 }
