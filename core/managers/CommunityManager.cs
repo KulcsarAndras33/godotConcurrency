@@ -9,8 +9,9 @@ public partial class CommunityManager : Node
     private HashSet<IAgent> activeAgents = [];
     private HashSet<IAgent> agents = [];
     private List<ICommunityTask> taskQueue = [];
-    private Storage storage = new(1000);
     private bool taskRedistributionNeeded = false;
+
+    public readonly Storage storage = new(1000);
 
     public void AddAgent(IAgent agent)
     {

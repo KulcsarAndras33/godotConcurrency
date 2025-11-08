@@ -9,7 +9,7 @@ namespace core.models.descriptor
         public string ResourceTag { get; set; }
 
         [Required]
-        public int Amount { get; set; }
+        public float Amount { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {

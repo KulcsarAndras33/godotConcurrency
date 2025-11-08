@@ -3,40 +3,40 @@ using System.Collections.Generic;
 
 public class Storage
 {
-    private Dictionary<string, int> resources = new();
-    private int capacity;
-    private int currentAmount = 0;
+    private readonly Dictionary<int, float> resources = [];
+    private float capacity;
+    private float currentAmount = 0;
 
-    public Storage(int capacity)
+    public Storage(float capacity)
     {
         this.capacity = capacity;
     }
 
-    public bool TryStore(string resource, int amount)
+    public bool TryStore(int resourceId, float amount)
     {
         if (currentAmount + amount > capacity)
         {
             return false;
         }
 
-        if (!resources.ContainsKey(resource))
+        if (!resources.ContainsKey(resourceId))
         {
-            resources[resource] = 0;
+            resources[resourceId] = 0;
         }
 
-        resources[resource] += amount;
+        resources[resourceId] += amount;
         currentAmount += amount;
         return true;
     }
 
-    public bool TryRetrieve(string resource, int amount)
+    public bool TryRetrieve(int resourceId, float amount)
     {
-        if (!resources.ContainsKey(resource) || resources[resource] < amount)
+        if (!resources.ContainsKey(resourceId) || resources[resourceId] < amount)
         {
             return false;
         }
 
-        resources[resource] -= amount;
+        resources[resourceId] -= amount;
         currentAmount -= amount;
         return true;
     }
@@ -46,8 +46,13 @@ public class Storage
         capacity = newCapacity;
     }
 
-    public int GetResourceAmount(string resource)
+    public float GetResourceAmount(int resourceId)
     {
-        return resources.ContainsKey(resource) ? resources[resource] : 0;
+        return resources.ContainsKey(resourceId) ? resources[resourceId] : 0;
+    }
+
+    public Dictionary<int, float> GetAllResources()
+    {
+        return resources;
     }
 }
