@@ -3,6 +3,7 @@ using Godot;
 using System.IO;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NodeDeserializers;
+using System;
 
 namespace core.models.descriptor
 {
@@ -12,6 +13,12 @@ namespace core.models.descriptor
         private readonly IDeserializer deserializer = new DeserializerBuilder()
         .WithNodeDeserializer(inner => new ValidatingNodeDeserializer(inner), s => s.InsteadOf<ObjectNodeDeserializer>())
         .Build();
+        private readonly string name = "Default library name";
+
+        public Library(string name)
+        {
+            this.name = name;
+        }
 
         private T ParseDescriptor(string filePath)
         {
@@ -20,6 +27,8 @@ namespace core.models.descriptor
 
         public void ParseDescriptors(string path)
         {
+            descriptors.Clear();
+
             var files = Directory.GetFiles(path);
             foreach (var filePath in files)
             {
@@ -31,6 +40,16 @@ namespace core.models.descriptor
             {
                 GD.Print(desc);
             }
+        }
+
+        public T GetDescriptorById(int id)
+        {
+            if (id < 0 || id >= descriptors.Count)
+            {
+                throw new Exception($"Unkown descriptor id: {id} in library {name}");
+            }
+
+            return descriptors[id];
         }
     }
 }

@@ -1,3 +1,4 @@
+using core.models.descriptor;
 using Godot;
 
 namespace Controller
@@ -8,6 +9,7 @@ namespace Controller
         private Label resourceLabel;
 
         private CommunityManager currentCommunity;
+        private readonly Library<ResourceDescriptor> resourceLibrary = new("Resource library");
 
         private void PrintResources()
         {
@@ -15,7 +17,7 @@ namespace Controller
             string text = "";
             foreach (var res in resources)
             {
-                text += $"{res.Key}: {res.Value} ";
+                text += $"{resourceLibrary.GetDescriptorById(res.Key).Name}: {res.Value} ";
             }
 
             resourceLabel.Text = text;
@@ -25,6 +27,7 @@ namespace Controller
         public override void _Ready()
         {
             resourceLabel = GetNode<Label>("VerticalBox/ResourceLabel");
+            resourceLibrary.ParseDescriptors("assets/base/resources");
         }
 
         public override void _Process(double delta)

@@ -7,7 +7,7 @@ namespace Example
     {
         public async override void _Ready()
         {
-            var buildingLibrary = new Library<BuildingDescriptor>();
+            var buildingLibrary = new Library<BuildingDescriptor>("Building library");
             buildingLibrary.ParseDescriptors("assets/base/buildings");
         }
 
