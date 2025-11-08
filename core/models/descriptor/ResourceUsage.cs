@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace core.models.descriptor
 {
-    class ResourceUsage : IValidatableObject
+    public class ResourceUsage : IValidatableObject
     {
         public int? ResourceId { get; set; }
         public string ResourceTag { get; set; }

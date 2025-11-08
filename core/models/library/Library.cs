@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Godot;
 using System.IO;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NodeDeserializers;
@@ -7,15 +6,23 @@ using System;
 
 namespace core.models.descriptor
 {
-    class Library<T> where T : IDescriptor
+    public class Library<T> where T : IDescriptor
     {
         private readonly List<T> descriptors = [];
         private readonly IDeserializer deserializer = new DeserializerBuilder()
         .WithNodeDeserializer(inner => new ValidatingNodeDeserializer(inner), s => s.InsteadOf<ObjectNodeDeserializer>())
         .Build();
         private readonly string name = "Default library name";
+        private static Library<T> instance = null;
 
-        public Library(string name)
+        public static Library<T> GetInstance()
+        {
+            instance ??= new Library<T>($"{nameof(T)} library");
+
+            return instance;
+        }
+
+        private Library(string name)
         {
             this.name = name;
         }

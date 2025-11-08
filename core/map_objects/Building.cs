@@ -1,13 +1,15 @@
+using core.models.descriptor;
 using Godot;
 
 public class Building : IGridObject
 {
-    static PackedScene EXAMPLE_SCENE = GD.Load<PackedScene>("res://examples/utils/Building.tscn");
+    static readonly PackedScene SPRITE_SCENE = GD.Load<PackedScene>("res://assets/BuildingScene.tscn");
 
     private int builtLevel = 0;
     private readonly int maxBuiltLevel = 100;
     private Node3D node; // This could later be migrated into a detailed state if needed.
     private Vector3I position;
+    private readonly int descriptorId;
 
     private void AddBuildingToChunkSystem()
     {
@@ -21,9 +23,10 @@ public class Building : IGridObject
     /// By default, building starts in the detailed state.
     /// </summary>
     /// <param name="position"></param>
-    public Building(Vector3I position)
+    public Building(Vector3I position, int descriptorId)
     {
         this.position = position;
+        this.descriptorId = descriptorId;
         ToDetailed();
     }
 
@@ -63,8 +66,14 @@ public class Building : IGridObject
 
     public void ToDetailed()
     {
-        node = EXAMPLE_SCENE.Instantiate<Node3D>();
+        node = SPRITE_SCENE.Instantiate<Node3D>();
         ChunkManager.GetInstance().GetTree().Root.AddChild(node);
         node.Position = position;
+        node.GetNode<Sprite3D>("Sprite").Texture = GD.Load<Texture2D>(GetDescriptor().SpritePath);
+    }
+
+    public BuildingDescriptor GetDescriptor()
+    {
+        return Library<BuildingDescriptor>.GetInstance().GetDescriptorById(descriptorId);
     }
 }

@@ -1,16 +1,16 @@
 [gd_scene load_steps=4 format=3 uid="uid://ebmhp2swyrw6"]
 
 [ext_resource type="Script" uid="uid://0o5qrqrbyqiw" path="res://examples/building/BuildingEg.cs" id="1_75vy6"]
-[ext_resource type="PackedScene" uid="uid://d0jpn0ythmp3h" path="res://examples/utils/NaiveChunkVisualiser.tscn" id="2_k7dks"]
 [ext_resource type="PackedScene" uid="uid://dvhujevilahaj" path="res://examples/utils/PathVisualiser.tscn" id="3_qsrvp"]
+[ext_resource type="PackedScene" uid="uid://0uge3ejbekto" path="res://controller/player_controller/PlayerController.tscn" id="4_k7dks"]
 
 [node name="Scene" type="Node2D"]
 script = ExtResource("1_75vy6")
 
-[node name="NaiveChunkVisualiser" parent="." instance=ExtResource("2_k7dks")]
-
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 44.4634, 40.37, 38.0774)
+
+[node name="PlayerController" parent="Camera3D" instance=ExtResource("4_k7dks")]
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.734477, 0.678634, 0, -0.678634, 0.734477, 0, 76.4945, 89.8876)

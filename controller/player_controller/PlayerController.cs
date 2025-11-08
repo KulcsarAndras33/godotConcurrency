@@ -3,15 +3,19 @@ using Godot;
 
 namespace Controller
 {
-    partial class PlayerController : Control
+    partial class PlayerController : Node
     {
+        static readonly PackedScene CHUNK_VISUALISER_SCENE = GD.Load<PackedScene>("res://examples/utils/NaiveChunkVisualiser.tscn");
+
         // UI elements
         private Label resourceLabel;
         private Label buildingLabel;
 
         private CommunityManager currentCommunity;
-        private readonly Library<ResourceDescriptor> resourceLibrary = new("Resource library");
-        private readonly Library<BuildingDescriptor> buildingLibrary = new("Building library");
+        private ChunkManager chunkManager;
+        private NaiveChunkVisualiser chunkVisualiser;
+        private readonly Library<ResourceDescriptor> resourceLibrary = Library<ResourceDescriptor>.GetInstance();
+        private readonly Library<BuildingDescriptor> buildingLibrary = Library<BuildingDescriptor>.GetInstance();
         private int chosenBuildingId = 0;
 
         private void PrintResources()
@@ -26,6 +30,53 @@ namespace Controller
             resourceLabel.Text = text;
         }
 
+        private void HandleLeftClick(InputEventMouseButton eventMouseButton)
+        {
+            var camera = GetParent<Camera3D>();
+            var point = camera.ProjectPosition(eventMouseButton.Position, 1);
+            var dir = point - camera.GlobalPosition;
+            var rayCast = new ChunkRaycast(camera.GlobalPosition, dir.Normalized(), 150);
+            var collision = rayCast.GetClosestHit();
+
+            if (collision != null)
+            {
+                GD.Print((Vector3I)collision);
+                if (Input.IsActionPressed("Control"))
+                {
+                    var chunk = ChunkManager.GetInstance().GetChunkByPos((Vector3I)collision);
+                    if (chunk.IsDetailed)
+                    {
+                        chunk.ToAbstract();
+                    }
+                    else
+                    {
+                        chunk.ToDetailed();
+                    }
+                    chunkVisualiser.Create(ChunkManager.GetInstance());
+                }
+                else
+                {
+                    BuildTask buildTask = new(new Building((Vector3I)collision + new Vector3I(0, 1, 0), chosenBuildingId));
+                    currentCommunity.AddTask(buildTask);
+                }
+            }
+            else
+            {
+                var chunk = rayCast.GetChunkHit();
+                if (chunk != null && Input.IsActionPressed("Control"))
+                {
+                    if (chunk.IsDetailed)
+                    {
+                        chunk.ToAbstract();
+                    }
+                    else
+                    {
+                        chunk.ToDetailed();
+                    }
+                    chunkVisualiser.Create(ChunkManager.GetInstance());
+                }
+            }
+        }
 
         public override void _Ready()
         {
@@ -36,6 +87,9 @@ namespace Controller
             buildingLibrary.ParseDescriptors("assets/base/buildings");
 
             buildingLabel.Text = $"Current building: {buildingLibrary.GetDescriptorById(chosenBuildingId).Name}";
+
+            chunkVisualiser = CHUNK_VISUALISER_SCENE.Instantiate<NaiveChunkVisualiser>();
+            AddChild(chunkVisualiser);
         }
 
         public override void _Process(double delta)
@@ -48,9 +102,29 @@ namespace Controller
             PrintResources();
         }
 
+        public override void _UnhandledInput(InputEvent @event)
+        {
+            if (@event is InputEventMouseButton mb
+                && mb.ButtonIndex == MouseButton.Left
+                && !mb.Pressed)
+            {
+                // ignore clicks that hit UI controls
+                if (GetViewport().GuiGetFocusOwner() != null)
+                    return;
+
+                HandleLeftClick(@event as InputEventMouseButton);
+            }
+        }
+
         public void SetCommunity(CommunityManager communityManager)
         {
             currentCommunity = communityManager;
+        }
+
+        public void SetChunkManager(ChunkManager chunkManager)
+        {
+            this.chunkManager = chunkManager;
+            chunkVisualiser.Create(chunkManager);
         }
     }
 }

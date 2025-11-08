@@ -1,9 +1,10 @@
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
 namespace core.models.descriptor
 {
-    class BuildingDescriptor : IDescriptor
+    public class BuildingDescriptor : IDescriptor
     {
         [Required]
         public string Name { get; set; }
@@ -19,6 +20,9 @@ namespace core.models.descriptor
 
         [Required]
         public int MaxWorkers { get; set; }
+
+        [DefaultValue("res://assets/base/textures/default_sprite.png")]
+        public string SpritePath { get; set; }
 
         public override string ToString()
         {
