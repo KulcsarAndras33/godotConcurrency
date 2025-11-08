@@ -80,7 +80,6 @@ public partial class MovingAgent : IAgent
 
     public void ToAbstract()
     {
-        GD.Print("Forces to abstract.");
         // This works based on the assumption that the MovingAgent only has two states,
         //      one detailed, and one abstract.
         if (currentState.IsDetailed())
