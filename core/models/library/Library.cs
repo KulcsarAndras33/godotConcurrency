@@ -35,11 +35,6 @@ namespace core.models.descriptor
                 T descriptor = ParseDescriptor(filePath);
                 descriptors.Insert(descriptor.Id, descriptor);
             }
-
-            foreach (var desc in descriptors)
-            {
-                GD.Print(desc);
-            }
         }
 
         public T GetDescriptorById(int id)

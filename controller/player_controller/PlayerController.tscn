@@ -21,3 +21,6 @@ grow_vertical = 2
 
 [node name="ResourceLabel" type="Label" parent="VerticalBox"]
 layout_mode = 2
+
+[node name="BuildingLabel" type="Label" parent="VerticalBox"]
+layout_mode = 2
