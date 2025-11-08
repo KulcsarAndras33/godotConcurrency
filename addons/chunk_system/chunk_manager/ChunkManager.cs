@@ -41,8 +41,7 @@ public partial class ChunkManager : Node
         if (chunks.ContainsKey(position))
             return;
 
-        chunks[position] = new Chunk(dimensions, position);
-        chunks[position].chunkManager = this;
+        chunks[position] = new Chunk(dimensions, position, this);
     }
 
     public void TransformChunks(Action<int[,,]> transformer)
@@ -93,7 +92,7 @@ public partial class ChunkManager : Node
 
         // TODO This is where some other logic can come, based on properties of the given chunk
         //      E.g.: Mountain biome -> some multiplier
-        
+
         // Fallback to euclidean distance if chunk pathfinding was never calculated
         GD.Print("Weight NOT found");
         return from.DistanceTo(to);
@@ -104,10 +103,19 @@ public partial class ChunkManager : Node
         return chunks.Values;
     }
 
+    public Vector3I GetDimensions()
+    {
+        return dimensions;
+    }
+
     public bool IsWalkable(Vector3I pos)
     {
-        int data = GetDataByPos(pos + new Vector3I(0, -1, 0));
-        return data != 0;
+        if (GetDataByPos(pos) != 0)
+        {
+            return false;
+        }
+
+        return GetDataByPos(pos + new Vector3I(0, -1, 0)) == 1;
     }
 
     public List<Vector3I> FindPath(Vector3I start, Vector3I end)
@@ -119,6 +127,9 @@ public partial class ChunkManager : Node
     public List<Vector3I> FindAbstractPath(Vector3I start, Vector3I end)
     {
         // TODO This might not be efficient, because we iterate through the whole abstract graph
+        // Maybe we could do a kind of breadth-first search with only going to nodes with lower distance
+        //      BUT This could lead to a non-optimal solution
+
         int startId = abstractPathfinder.GetClosestVertexId(start);
         int endId = abstractPathfinder.GetClosestVertexId(end);
 
@@ -147,7 +158,7 @@ public partial class ChunkManager : Node
                 // TODO Only working in 2 dimensions
                 nextChunk = GetChunkByPos(nextChunkPos * dimensions);
 
-                if (nextChunk != null && nextChunk.isDetailed)
+                if (nextChunk != null && nextChunk.IsDetailed)
                 {
                     break;
                 }
@@ -156,7 +167,7 @@ public partial class ChunkManager : Node
                 pathEndingChunk = nextChunk;
             }
 
-            if (nextChunk != null && nextChunk.isDetailed)
+            if (nextChunk != null && nextChunk.IsDetailed)
             {
                 // TODO maybe push the starting point into the direction of travel a bit?
                 var partStartPos = nextChunk.position * dimensions + dimensions / 2;
@@ -180,7 +191,7 @@ public partial class ChunkManager : Node
     public void SetChunkToAbstract(Vector3I globalPos)
     {
         var chunk = GetChunkByPos(globalPos);
-        if (chunk != null && chunk.isDetailed)
+        if (chunk != null && chunk.IsDetailed)
         {
             chunk.ToAbstract();
             GD.Print($"Set chunk at {chunk.position} to abstract");

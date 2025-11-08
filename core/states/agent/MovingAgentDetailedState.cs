@@ -1,12 +1,8 @@
-
-using System;
 using Godot;
 
-public class MovingAgentDetailedState : State, IMovingState
+public class MovingAgentDetailedState : IMovingState
 {
     static PackedScene EXAMPLE_SCENE = GD.Load<PackedScene>("res://examples/utils/Agent.tscn");
-
-    private Chunk currChunk;
 
     public MovingAgent agent;
     public Vector3 position;
@@ -21,17 +17,18 @@ public class MovingAgentDetailedState : State, IMovingState
         ChunkManager.GetInstance().GetTree().Root.AddChild(node);
     }
 
-    public override void Enter()
+    public void Enter()
     {
         node.GlobalPosition = position;
     }
 
-    public override void Exit()
+    public void Exit()
     {
-        node.QueueFree();
+        node?.QueueFree();
+        node = null;
     }
 
-    public override void Load()
+    public void Load()
     {
         GD.Print("Loading resources for MovingAgentDetailedState");
     }
@@ -39,18 +36,13 @@ public class MovingAgentDetailedState : State, IMovingState
     public void SetPostion(Vector3 position)
     {
         var chunkManager = ChunkManager.GetInstance();
-        var newChunk = chunkManager.GetChunkByPos((Vector3I) position);
-        if (currChunk != newChunk)
+        var newChunk = chunkManager.GetChunkByPos((Vector3I)position);
+        if (agent.CurrentChunk != newChunk)
         {
-            currChunk?.RemoveAgent(agent);
+            agent.CurrentChunk?.RemoveAgent(agent);
             newChunk.AddAgent(agent);
+            agent.CurrentChunk = newChunk;
         }
-
-        if (!newChunk.isDetailed)
-        {
-            Exit();
-        }
-        currChunk = newChunk;
 
         this.position = position;
         node.GlobalPosition = position;
@@ -61,37 +53,34 @@ public class MovingAgentDetailedState : State, IMovingState
         return position;
     }
 
-    public override void Unload()
+    public void Unload()
     {
         GD.Print("Unloading resources for MovingAgentDetailedState");
     }
 
-    protected override void CreateDefaultAction(Action<AgentAction> actionSetter)
-    {
-        var goal = agent.communityManager.GetRandomGoal();
-        var newAction = new MoveAction
-        {
-            abstractPath = ChunkManager.GetInstance().FindAbstractPath((Vector3I) position, goal),
-            agent = agent
-        };
-        actionSetter.Invoke(newAction);
-    }
-
-    public override bool IsDetailed()
+    public bool IsDetailed()
     {
         return true;
     }
 
-    public override bool IsValid()
+    public bool IsValid()
     {
-        return currChunk?.isDetailed ?? true;
+        return agent.CurrentChunk?.IsDetailed ?? true;
     }
 
-    public override IState GetNextState()
+    public IState GetNextState()
     {
+        Exit();
+
         var nextState = new MovingAgentAbstractState(agent, position);
         nextState.Load();
         nextState.Enter();
         return nextState;
     }
+
+    public void NoActionLeft()
+    {
+        agent.communityManager.NotifyNoAction();
+    }
+
 }

@@ -1,11 +1,14 @@
+using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 public partial class MovingAgent : IAgent
 {
     private IMovingState currentState;
-    private AgentAction currentAction;
+    private List<AgentAction> currentActions = [];
 
     public CommunityManager communityManager { get; set; }
+    public Chunk CurrentChunk { get; set; }
 
     public MovingAgent()
     {
@@ -22,12 +25,17 @@ public partial class MovingAgent : IAgent
             currentState = currentState.GetNextState() as IMovingState;
         }
 
+        if (currentActions.Count == 0)
+        {
+            currentState.NoActionLeft();
+            currentActions.Add(new IdleAction());
+        }
+
+        var currentAction = currentActions.First();
+
         if (currentAction == null || currentAction.IsComplete())
         {
-            currentState.GetDefaultAction(action =>
-            {
-                currentAction = action;
-            });
+            currentActions.RemoveAt(0);
         }
         else
         {
@@ -50,9 +58,9 @@ public partial class MovingAgent : IAgent
         currentState.SetPostion(position);
     }
 
-    public void SetAction(AgentAction action)
+    public void SetActions(List<AgentAction> actions)
     {
-        currentAction = action;
+        currentActions = actions;
     }
 
     public Vector3 GetPosition()
@@ -62,11 +70,34 @@ public partial class MovingAgent : IAgent
 
     public MoveAction GetMoveAction()
     {
-        if (currentAction is not MoveAction)
+        if (currentActions.Count == 0 || currentActions.First() is not MoveAction)
         {
             return null;
         }
 
-        return currentAction as MoveAction;
+        return currentActions.First() as MoveAction;
     }
+
+    public void ToAbstract()
+    {
+        // This works based on the assumption that the MovingAgent only has two states,
+        //      one detailed, and one abstract.
+        if (currentState.IsDetailed())
+        {
+            currentState = currentState.GetNextState() as IMovingState;
+        }
+        currentActions.First().HandleStateChange();
+    }
+
+    public void ToDetailed()
+    {
+        // This works based on the assumption that the MovingAgent only has two states,
+        //      one detailed, and one abstract.
+        if (!currentState.IsDetailed())
+        {
+            currentState = currentState.GetNextState() as IMovingState;
+        }
+        currentActions.First().HandleStateChange();
+    }
+
 }

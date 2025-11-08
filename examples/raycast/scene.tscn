@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3 uid="uid://dqf6805f7fb1h"]
+
+[ext_resource type="Script" uid="uid://cpyahi2lnxqoy" path="res://examples/raycast/RaycastEg.cs" id="1_8dmb3"]
+[ext_resource type="PackedScene" uid="uid://d0jpn0ythmp3h" path="res://examples/utils/NaiveChunkVisualiser.tscn" id="2_1qmcj"]
+
+[node name="Scene" type="Node2D"]
+script = ExtResource("1_8dmb3")
+
+[node name="NaiveChunkVisualiser" parent="." instance=ExtResource("2_1qmcj")]
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 81.1916, 82.6153, 38.0774)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.734477, 0.678634, 0, -0.678634, 0.734477, 0, 76.4945, 89.8876)

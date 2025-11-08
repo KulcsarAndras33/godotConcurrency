@@ -1,43 +1,45 @@
 using System;
-using System.Threading;
 using Godot;
 
-public partial class InChunkPathfinding : Node
+namespace Example
 {
-    public async override void _Ready()
+    public partial class InChunkPathfinding : Node
     {
-        Vector3I chunkSize = new(20, 2, 20);
-        var chunkManager = ChunkManager.CreateInstance(chunkSize);
-        chunkManager.CreateChunk(new Vector3I(0, 0, 0));
-        chunkManager.TransformChunks(RandomFill(0));
-
-        GD.Print("ASD");
-
-        await ToSignal(GetTree().CreateTimer(1), Godot.Timer.SignalName.Timeout);
-
-        var path = chunkManager.FindPath(new Vector3I(0, 1, 0), new Vector3I(19, 1, 19));
-        GD.Print("Path length: " + path.Count);
-        foreach (var p in path)
+        public async override void _Ready()
         {
-            GD.Print(p);
-        }
-    }
+            Vector3I chunkSize = new(20, 2, 20);
+            var chunkManager = ChunkManager.CreateInstance(chunkSize);
+            chunkManager.CreateChunk(new Vector3I(0, 0, 0));
+            chunkManager.TransformChunks(RandomFill(0));
 
-    public Action<int[,,]> RandomFill(int level)
-    {
-        return data =>
-        {
-            var rand = new Random();
-            for (int x = 0; x < data.GetLength(0); x++)
+            GD.Print("ASD");
+
+            await ToSignal(GetTree().CreateTimer(1), Godot.Timer.SignalName.Timeout);
+
+            var path = chunkManager.FindPath(new Vector3I(0, 1, 0), new Vector3I(19, 1, 19));
+            GD.Print("Path length: " + path.Count);
+            foreach (var p in path)
             {
-                for (int z = 0; z < data.GetLength(2); z++)
+                GD.Print(p);
+            }
+        }
+
+        public Action<int[,,]> RandomFill(int level)
+        {
+            return data =>
+            {
+                var rand = new Random();
+                for (int x = 0; x < data.GetLength(0); x++)
                 {
-                    if (rand.NextDouble() < 0.9)
+                    for (int z = 0; z < data.GetLength(2); z++)
                     {
-                        data[x, level, z] = 1;
+                        if (rand.NextDouble() < 0.9)
+                        {
+                            data[x, level, z] = 1;
+                        }
                     }
                 }
-            }
-        };
+            };
+        }
     }
 }

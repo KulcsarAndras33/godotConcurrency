@@ -4,21 +4,24 @@ using System.Collections.Generic;
 using System.Linq;
 using Godot;
 
-// TODO Nothing is setup for concurrency currently
+// TODO Mostly nothing is setup for concurrency currently
 public class Chunk
 {
     private int[,,] data;
+    private int[,,] backupData; // THIS IS TEMPORARY it mocks the data being written to file
     private List<IAgent> agents = new();
+    private readonly HashSet<Building> buildings = [];
+    private readonly SingleTaskExecutor HPFExecutor;
 
     public Vector3I dimensions;
     public Vector3I position;
     public ChunkManager chunkManager;
-    public bool isDetailed { get; private set; } = false;
-    public bool isPathFindingCalculated { get; private set; } = false;
+    public bool IsDetailed { get; private set; } = false;
+    public bool IsPathFindingCalculated { get; private set; } = false;
 
     private IEnumerable<Vector3I> GetEdges()
     {
-        List<Vector3I> edges = new();
+        List<Vector3I> edges = [];
 
         for (int x = 0; x < dimensions.X; x++)
         {
@@ -129,15 +132,18 @@ public class Chunk
         return neighbors;
     }
 
-    public Chunk(Vector3I dimensions, Vector3I position)
+    public Chunk(Vector3I dimensions, Vector3I position, ChunkManager chunkManager)
     {
         this.dimensions = dimensions;
         this.position = position;
+        this.chunkManager = chunkManager;
+
+        HPFExecutor = new(chunkManager.threadPool);
     }
 
     public void Transform(Action<int[,,]> transformer)
     {
-        isPathFindingCalculated = false;
+        IsPathFindingCalculated = false;
 
         // TODO Maybe move this to a more explicit method
         //      to show that this is part of becoming detailed.
@@ -145,17 +151,46 @@ public class Chunk
 
         transformer.Invoke(data);
 
-        isDetailed = true;
+        IsDetailed = true;
+    }
+
+    public void SetData(Vector3I pos, int data)
+    {
+        pos = ToLocal(pos);
+        lock (this)
+        {
+            if (!IsInBounds(pos))
+            {
+                throw new Exception($"Trying to add data to a position not within the chunk. Pos: {pos}");
+            }
+
+            if (!IsDetailed)
+                // TODO Custom Exception?
+                throw new Exception($"Adding data to abstract chunk is not allowed! Pos: {pos} Data: {data}");
+
+            this.data[pos.X, pos.Y, pos.Z] = data;
+            GD.Print($"Added data {data} to {ToGlobal(pos)}");
+        }
+
+        // Currently nothing actually considers the values of this
+        IsPathFindingCalculated = false;
+
+        HPFExecutor.TryExecute(GenerateHierarchicalPathfinding);
     }
 
     public int GetData(Vector3I pos)
     {
-        if (!IsInBounds(pos) || !isDetailed)
+        if (!IsInBounds(pos) || !IsDetailed)
             return 0;
 
         return data[pos.X, pos.Y, pos.Z];
     }
 
+    /// <summary>
+    /// Uses local position.
+    /// </summary>
+    /// <param name="pos">Local position</param>
+    /// <returns>Whether the position is contained by the chunk.</returns>
     public bool IsInBounds(Vector3I pos)
     {
         return pos.X >= 0 && pos.X < dimensions.X &&
@@ -200,7 +235,7 @@ public class Chunk
             }
         }
 
-        isPathFindingCalculated = true;
+        IsPathFindingCalculated = true;
     }
 
     public Vector3I ToGlobal(Vector3I localPos)
@@ -223,9 +258,74 @@ public class Chunk
         agents.Remove(agent);
     }
 
+    public void AddBuilding(Building building)
+    {
+        // This was written when data == 1 was walkable, everything else not walkable.
+        SetData(building.GetPosition(), 2);
+        buildings.Add(building);
+    }
+
     public void ToAbstract()
     {
-        isDetailed = false;
-        data = null;
+        lock (this)
+        {
+            IsDetailed = false;
+            backupData = new int[dimensions.X, dimensions.Y, dimensions.Z];
+
+            // Saving data to backup -> This mocks file usage for now
+            for (int x = 0; x < dimensions.X; x++)
+            {
+                for (int y = 0; y < dimensions.Y; y++)
+                {
+                    for (int z = 0; z < dimensions.Z; z++)
+                    {
+                        backupData[x, y, z] = data[x, y, z];
+                    }
+                }
+            }
+
+            data = null;
+
+            foreach (var building in buildings)
+            {
+                building.ToAbstract();
+            }
+            foreach (var agent in agents)
+            {
+                agent.ToAbstract();
+            }
+        }
+    }
+
+    public void ToDetailed()
+    {
+        lock (this)
+        {
+            IsDetailed = true;
+            data = new int[dimensions.X, dimensions.Y, dimensions.Z];
+
+            // Loading data from backup -> This mocks file usage for now
+            for (int x = 0; x < dimensions.X; x++)
+            {
+                for (int y = 0; y < dimensions.Y; y++)
+                {
+                    for (int z = 0; z < dimensions.Z; z++)
+                    {
+                        data[x, y, z] = backupData[x, y, z];
+                    }
+                }
+            }
+
+            backupData = null;
+
+            foreach (var building in buildings)
+            {
+                building.ToDetailed();
+            }
+            foreach (var agent in agents)
+            {
+                agent.ToDetailed();
+            }
+        }
     }
 }

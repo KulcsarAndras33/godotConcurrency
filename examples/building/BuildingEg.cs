@@ -3,10 +3,11 @@ using Godot;
 
 namespace Example
 {
-    public partial class MovingAgents : Node
+    public partial class BuildingEg : Node
     {
 
         private CommunityManager communityManager;
+        private NaiveChunkVisualiser chunkVisualiser;
 
         public async override void _Ready()
         {
@@ -39,8 +40,8 @@ namespace Example
                 }
             }
 
-            var visualiser = GetNode<NaiveChunkVisualiser>("NaiveChunkVisualiser");
-            visualiser.Create(chunkManager);
+            chunkVisualiser = GetNode<NaiveChunkVisualiser>("NaiveChunkVisualiser");
+            chunkVisualiser.Create(chunkManager);
 
             var pathDrawer = GetNode<PathVisualiser>("PathVisualiser");
 
@@ -79,15 +80,50 @@ namespace Example
             {
                 if (eventMouseButton.Pressed)
                     return;
+
                 var camera = GetNode<Camera3D>("Camera3D");
                 var point = camera.ProjectPosition(eventMouseButton.Position, 1);
                 var dir = point - camera.GlobalPosition;
                 var rayCast = new ChunkRaycast(camera.GlobalPosition, dir.Normalized(), 150);
                 var collision = rayCast.GetClosestHit();
+
                 if (collision != null)
                 {
                     GD.Print((Vector3I)collision);
-                    communityManager.AddTask(new MoveTask((Vector3I)collision + new Vector3I(0, 1, 0)));
+                    if (Input.IsActionPressed("Control"))
+                    {
+                        var chunk = ChunkManager.GetInstance().GetChunkByPos((Vector3I)collision);
+                        if (chunk.IsDetailed)
+                        {
+                            chunk.ToAbstract();
+                        }
+                        else
+                        {
+                            chunk.ToDetailed();
+                        }
+                        chunkVisualiser.Create(ChunkManager.GetInstance());
+                    }
+                    else
+                    {
+                        BuildTask buildTask = new(new Building((Vector3I)collision + new Vector3I(0, 1, 0)));
+                        communityManager.AddTask(buildTask);
+                    }
+                }
+                else
+                {
+                    var chunk = rayCast.GetChunkHit();
+                    if (chunk != null && Input.IsActionPressed("Control"))
+                    {
+                        if (chunk.IsDetailed)
+                        {
+                            chunk.ToAbstract();
+                        }
+                        else
+                        {
+                            chunk.ToDetailed();
+                        }
+                        chunkVisualiser.Create(ChunkManager.GetInstance());
+                    }
                 }
             }
         }
