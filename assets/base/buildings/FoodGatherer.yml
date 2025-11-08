@@ -1,0 +1,8 @@
+---
+Name: "Food Gatherer"
+Id: 0
+Inputs: []
+Outputs:
+  - ResourceId: 0
+    Amount: 5
+MaxWorkers: 1
