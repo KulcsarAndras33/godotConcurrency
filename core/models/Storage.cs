@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using core.models.descriptor;
 
 public class Storage
 {
+    private static readonly Library<ResourceDescriptor> resourceLibrary = Library<ResourceDescriptor>.GetInstance();
     private readonly Dictionary<int, float> resources = [];
+    private readonly Dictionary<string, float> resourcesByTag = [];
     private float capacity;
     private float currentAmount = 0;
 
@@ -22,6 +25,14 @@ public class Storage
         if (!resources.ContainsKey(resourceId))
         {
             resources[resourceId] = 0;
+        }
+        foreach (var tag in resourceLibrary.GetDescriptorById(resourceId).Tags)
+        {
+            if (!resourcesByTag.ContainsKey(tag))
+            {
+                resourcesByTag[tag] = 0;
+            }
+            resourcesByTag[tag] += amount;
         }
 
         resources[resourceId] += amount;
@@ -48,7 +59,12 @@ public class Storage
 
     public float GetResourceAmount(int resourceId)
     {
-        return resources.ContainsKey(resourceId) ? resources[resourceId] : 0;
+        return resources.TryGetValue(resourceId, out float value) ? value : 0;
+    }
+
+    public float GetResourceAmount(string tag)
+    {
+        return resourcesByTag.TryGetValue(tag, out float value) ? value : 0;
     }
 
     public Dictionary<int, float> GetAllResources()

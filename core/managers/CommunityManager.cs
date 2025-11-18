@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Core.Logic;
 using Godot;
 
 public partial class CommunityManager : Node
@@ -8,8 +9,10 @@ public partial class CommunityManager : Node
     private Random random = new();
     private HashSet<IAgent> activeAgents = [];
     private HashSet<IAgent> agents = [];
+    private readonly HashSet<Building> buildings = [];
     private List<ICommunityTask> taskQueue = [];
     private bool taskRedistributionNeeded = false;
+    private readonly ResourceTaskHandler resourceTaskHandler = new();
 
     public readonly Storage storage = new(1000);
 
@@ -19,6 +22,16 @@ public partial class CommunityManager : Node
         activeAgents.Add(agent);
         agents.Add(agent);
         GD.Print($"Agent added: {agents.Count}");
+    }
+
+    public void AddBuilding(Building building)
+    {
+        buildings.Add(building);
+    }
+
+    public void BuildingBuilt(Building building)
+    {
+        resourceTaskHandler.AddBuildings([building]);
     }
 
     public override void _Process(double delta)
@@ -61,7 +74,7 @@ public partial class CommunityManager : Node
         GD.Print("Totally redistributing tasks.");
         taskRedistributionNeeded = false;
 
-        TaskDistribution distribution = TaskDistributor.Distribute(taskQueue, agents.Count);
+        TaskDistribution distribution = TaskDistributor.Distribute(taskQueue, this);
         lock (activeAgents)
         {
             activeAgents.Clear();
@@ -82,5 +95,10 @@ public partial class CommunityManager : Node
                 }
             }
         }
+    }
+
+    public HashSet<IAgent> GetAgents()
+    {
+        return agents;
     }
 }

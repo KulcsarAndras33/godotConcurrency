@@ -11,6 +11,8 @@ public class Building : IGridObject
     private Vector3I position;
     private readonly int descriptorId;
 
+    // TODO Why not do this in the constructor?
+    //      Could solve the issue of building being put down in an abstract chunk (if that's a valid use-case?)
     private void AddBuildingToChunkSystem()
     {
         var chunkManager = ChunkManager.GetInstance();
@@ -23,11 +25,13 @@ public class Building : IGridObject
     /// By default, building starts in the detailed state.
     /// </summary>
     /// <param name="position"></param>
-    public Building(Vector3I position, int descriptorId)
+    public Building(Vector3I position, int descriptorId, CommunityManager communityManager)
     {
         this.position = position;
         this.descriptorId = descriptorId;
         ToDetailed();
+
+        communityManager.AddBuilding(this);
     }
 
     public void Build(int amount)

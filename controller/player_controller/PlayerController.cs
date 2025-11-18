@@ -57,7 +57,7 @@ namespace Controller
                 }
                 else
                 {
-                    BuildTask buildTask = new(new Building((Vector3I)collision + new Vector3I(0, 1, 0), chosenBuildingId));
+                    BuildTask buildTask = new(new Building((Vector3I)collision + new Vector3I(0, 1, 0), chosenBuildingId, currentCommunity));
                     currentCommunity.AddTask(buildTask);
                 }
             }
