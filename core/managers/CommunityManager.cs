@@ -12,9 +12,20 @@ public partial class CommunityManager : Node
     private readonly HashSet<Building> buildings = [];
     private List<ICommunityTask> taskQueue = [];
     private bool taskRedistributionNeeded = false;
-    private readonly ResourceTaskHandler resourceTaskHandler = new();
+    private readonly TaskDistributor taskDistributor;
 
+    public readonly ResourceTaskHandler resourceTaskHandler = new();
     public readonly Storage storage = new(1000);
+
+
+    public CommunityManager()
+    {
+        resourceTaskHandler.SetCommunity(this);
+        taskDistributor = new(this);
+
+        // By default, add some Food
+        storage.TryStore(0, 50);
+    }
 
     public void AddAgent(IAgent agent)
     {
@@ -36,6 +47,8 @@ public partial class CommunityManager : Node
 
     public override void _Process(double delta)
     {
+        storage.TryRetrieve("Food", resourceTaskHandler.GetResourceUsage("Food") / 60 / 1000);
+
         lock (activeAgents)
         {
             foreach (var agent in activeAgents)
@@ -62,7 +75,13 @@ public partial class CommunityManager : Node
         GD.Print("There's an agent without task.");
 
         // Clear completed tasks
-        taskQueue = [.. taskQueue.Where(task => !task.IsCompleted())];
+        taskQueue = [.. taskQueue.Where(task => {
+            if (task.IsCompleted()) {
+                task.CompletionAction(this);
+                return false;
+            }
+            return true;
+            })];
 
         taskRedistributionNeeded = true;
     }
@@ -74,7 +93,7 @@ public partial class CommunityManager : Node
         GD.Print("Totally redistributing tasks.");
         taskRedistributionNeeded = false;
 
-        TaskDistribution distribution = TaskDistributor.Distribute(taskQueue, this);
+        TaskDistribution distribution = taskDistributor.Distribute(taskQueue);
         lock (activeAgents)
         {
             activeAgents.Clear();

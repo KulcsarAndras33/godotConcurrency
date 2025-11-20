@@ -19,7 +19,12 @@ namespace Core.Model
 
         public Building GetAvailableBuilding(T key, Dictionary<Building, int> buildingUsage)
         {
-            foreach (var building in data[key])
+            if (!data.TryGetValue(key, out var buildings))
+            {
+                return null;
+            }
+
+            foreach (var building in buildings)
             {
                 if (!buildingUsage.TryGetValue(building, out int usage))
                 {

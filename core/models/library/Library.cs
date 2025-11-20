@@ -17,7 +17,7 @@ namespace core.models.descriptor
 
         public static Library<T> GetInstance()
         {
-            instance ??= new Library<T>($"{nameof(T)} library");
+            instance ??= new Library<T>($"{typeof(T).Name} library");
 
             return instance;
         }
@@ -29,7 +29,8 @@ namespace core.models.descriptor
 
         private T ParseDescriptor(string filePath)
         {
-            return deserializer.Deserialize<T>(new StreamReader(filePath));
+            using var reader = new StreamReader(filePath);
+            return deserializer.Deserialize<T>(reader);
         }
 
         public void ParseDescriptors(string path)
@@ -48,7 +49,7 @@ namespace core.models.descriptor
         {
             if (id < 0 || id >= descriptors.Count)
             {
-                throw new Exception($"Unkown descriptor id: {id} in library {name}");
+                throw new Exception($"Unknown descriptor id: {id} in library {name}");
             }
 
             return descriptors[id];

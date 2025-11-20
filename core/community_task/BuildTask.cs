@@ -54,4 +54,9 @@ public class BuildTask : BaseCommunityTask
     {
         return building.IsBuilt();
     }
+
+    public override void CompletionAction(CommunityManager communityManager)
+    {
+        communityManager.BuildingBuilt(building);
+    }
 }

@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using core.models.descriptor;
 using Core.Model;
+using Godot;
 
 namespace Core.Logic
 {
@@ -11,6 +13,8 @@ namespace Core.Logic
         private readonly Dictionary<int, float> resourceUsageById = [];
         private readonly Dictionary<string, float> resourceUsageByTag = [];
         private CommunityManager community;
+        private int buildingCapacity = 0;
+        private int usedCapacity = 0;
 
         private Building buildingToUse = null;
 
@@ -22,15 +26,15 @@ namespace Core.Logic
                 {
                     foreach (var resource in building.GetDescriptor().Outputs)
                     {
-                        if (resource.ResourceId != null)
+                        var resId = resource.ResourceId.Value;
+                        buildingsByResourceId.Add(resId, building);
+                        foreach (var tag in Library<ResourceDescriptor>.GetInstance().GetDescriptorById(resId).Tags)
                         {
-                            buildingsByResourceId.Add(resource.ResourceId.Value, building);
-                        }
-                        if (resource.ResourceTag != null)
-                        {
-                            buildingsByResourceTag.Add(resource.ResourceTag, building);
+                            buildingsByResourceTag.Add(tag, building);
                         }
                     }
+
+                    buildingCapacity += building.GetDescriptor().MaxWorkers;
                 }
             }
         }
@@ -45,6 +49,7 @@ namespace Core.Logic
             resourceUsageById.Clear();
             resourceUsageByTag.Clear();
             buildingUsage.Clear();
+            usedCapacity = 0;
 
             resourceUsageByTag["Food"] = 0;
 
@@ -52,6 +57,8 @@ namespace Core.Logic
             {
                 resourceUsageByTag["Food"] += agent.GetDescriptor().FoodConsumption;
             }
+
+            GD.Print($"Current food usage: {resourceUsageByTag["Food"]}");
         }
 
         public float GetPriority()
@@ -60,10 +67,16 @@ namespace Core.Logic
             //      Prios 10 and 2 are chosen by the Stomak method :)
             foreach (var usage in resourceUsageByTag)
             {
-                buildingToUse = buildingsByResourceTag.GetAvailableBuilding(usage.Key, buildingUsage);
-                if (usage.Value > 0 && buildingToUse != null)
+                GD.Print("Going through res usages.");
+                var currentBuilding = buildingsByResourceTag.GetAvailableBuilding(usage.Key, buildingUsage);
+                if (currentBuilding != null)
                 {
-                    return 10;
+                    buildingToUse = currentBuilding;
+                    GD.Print($"Set building to use to {buildingToUse}");
+                    if (usage.Value > 0)
+                    {
+                        return 10;
+                    }
                 }
             }
 
@@ -73,7 +86,12 @@ namespace Core.Logic
         public ICommunityTask GetTask(TaskDistribution distribution)
         {
             // TODO This takes int, but workforce is float
+            if (!buildingUsage.ContainsKey(buildingToUse))
+            {
+                buildingUsage[buildingToUse] = 0;
+            }
             buildingUsage[buildingToUse] += 1;
+            usedCapacity += 1;
 
             foreach (var output in buildingToUse.GetDescriptor().Outputs)
             {
@@ -110,6 +128,17 @@ namespace Core.Logic
             }
 
             return new UseBuildingTask(buildingToUse);
+        }
+
+        public float GetResourceUsage(string tag)
+        {
+            return resourceUsageByTag.GetValueOrDefault(tag);
+        }
+
+        public bool HasFreeCapacity()
+        {
+            GD.Print($"Capacity: Total: {buildingCapacity}, Used: {usedCapacity}");
+            return usedCapacity < buildingCapacity;
         }
     }
 }

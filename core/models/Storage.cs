@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using core.models.descriptor;
+using Godot;
 
 public class Storage
 {
@@ -49,6 +50,32 @@ public class Storage
 
         resources[resourceId] -= amount;
         currentAmount -= amount;
+        return true;
+    }
+
+    public bool TryRetrieve(string tag, float amount)
+    {
+        if (!resourcesByTag.ContainsKey(tag) || resourcesByTag[tag] < amount)
+        {
+            return false;
+        }
+
+        currentAmount -= amount;
+
+        var resourceEnum = resources.Keys.GetEnumerator();
+
+        while (amount > 0 && resourceEnum.MoveNext())
+        {
+            var amountToRetrieve = Math.Min(amount, resources[resourceEnum.Current]);
+            resources[resourceEnum.Current] -= amountToRetrieve;
+            amount -= amountToRetrieve;
+        }
+
+        if (amount > 0)
+        {
+            throw new Exception($"Remaining amount is {amount} after retrieving by tag {tag}. Something went wrong!");
+        }
+
         return true;
     }
 

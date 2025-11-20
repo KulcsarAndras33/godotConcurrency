@@ -86,6 +86,7 @@ namespace Controller
 
             resourceLibrary.ParseDescriptors("assets/base/resources");
             buildingLibrary.ParseDescriptors("assets/base/buildings");
+            agentLibrary.ParseDescriptors("assets/base/agents");
 
             buildingLabel.Text = $"Current building: {buildingLibrary.GetDescriptorById(chosenBuildingId).Name}";
 
