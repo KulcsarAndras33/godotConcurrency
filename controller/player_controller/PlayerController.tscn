@@ -1,0 +1,18 @@
+[gd_scene load_steps=2 format=3 uid="uid://0uge3ejbekto"]
+
+[ext_resource type="Script" uid="uid://dpvslowya4sjr" path="res://controller/player_controller/PlayerController.cs" id="1_bodxw"]
+
+[node name="PlayerController" type="Node"]
+script = ExtResource("1_bodxw")
+
+[node name="VerticalBox" type="VBoxContainer" parent="."]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 50.0
+grow_horizontal = 2
+
+[node name="ResourceLabel" type="Label" parent="VerticalBox"]
+layout_mode = 2
+
+[node name="BuildingLabel" type="Label" parent="VerticalBox"]
+layout_mode = 2

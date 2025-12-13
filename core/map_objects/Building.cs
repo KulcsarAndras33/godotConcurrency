@@ -1,14 +1,20 @@
+using core.models.descriptor;
 using Godot;
 
 public class Building : IGridObject
 {
-    static PackedScene EXAMPLE_SCENE = GD.Load<PackedScene>("res://examples/utils/Building.tscn");
+    static readonly PackedScene SPRITE_SCENE = GD.Load<PackedScene>("res://assets/BuildingScene.tscn");
 
     private int builtLevel = 0;
-    private readonly int maxBuiltLevel = 100;
+    private readonly int maxBuiltLevel = 50;
     private Node3D node; // This could later be migrated into a detailed state if needed.
     private Vector3I position;
+    private readonly int descriptorId;
 
+    public CommunityManager communityManager { get; set; }
+
+    // TODO Investigate doing this in the constructor?
+    //      Could solve the issue of building being put down in an abstract chunk (if that's a valid use-case?)
     private void AddBuildingToChunkSystem()
     {
         var chunkManager = ChunkManager.GetInstance();
@@ -17,14 +23,39 @@ public class Building : IGridObject
         chunk.AddBuilding(this);
     }
 
+    private void ModifyCommunityStorage(ulong usageTimeout)
+    {
+        var descriptor = GetDescriptor();
+        Storage storage = communityManager.storage;
+
+        foreach (ResourceUsage input in descriptor.Inputs)
+        {
+            var hadEnoughInput = storage.TryRetrieve(input.ResourceTag, input.Amount / 60 / 1000 * usageTimeout);
+            if (!hadEnoughInput)
+            {
+                return;
+            }
+        }
+
+        foreach (ResourceUsage output in descriptor.Outputs)
+        {
+            // The resource amount is always given in resource / minute
+            storage.TryStore(output.ResourceId.Value, output.Amount / 60 / 1000 * usageTimeout);
+        }
+    }
+
     /// <summary>
     /// By default, building starts in the detailed state.
     /// </summary>
     /// <param name="position"></param>
-    public Building(Vector3I position)
+    public Building(Vector3I position, int descriptorId, CommunityManager communityManager)
     {
         this.position = position;
+        this.descriptorId = descriptorId;
         ToDetailed();
+
+        this.communityManager = communityManager;
+        communityManager.AddBuilding(this);
     }
 
     public void Build(int amount)
@@ -63,8 +94,19 @@ public class Building : IGridObject
 
     public void ToDetailed()
     {
-        node = EXAMPLE_SCENE.Instantiate<Node3D>();
+        node = SPRITE_SCENE.Instantiate<Node3D>();
         ChunkManager.GetInstance().GetTree().Root.AddChild(node);
         node.Position = position;
+        node.GetNode<Sprite3D>("Sprite").Texture = GD.Load<Texture2D>(GetDescriptor().SpritePath);
+    }
+
+    public BuildingDescriptor GetDescriptor()
+    {
+        return Library<BuildingDescriptor>.GetInstance().GetDescriptorById(descriptorId);
+    }
+
+    public void Interact(IAgent agent, ulong usageTimeout)
+    {
+        ModifyCommunityStorage(usageTimeout);
     }
 }

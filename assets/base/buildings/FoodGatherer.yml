@@ -1,0 +1,9 @@
+---
+Name: "Food Gatherer"
+Id: 0
+Inputs: []
+Outputs:
+  - ResourceId: 0
+    Amount: 5
+MaxWorkers: 1
+SpritePath: "res://assets/base/textures/food_gatherer.png"

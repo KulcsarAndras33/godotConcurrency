@@ -31,7 +31,7 @@ namespace Example
             const int AGENT_COUNT = 1;
             for (int i = 0; i < AGENT_COUNT; i++)
             {
-                var agent = new MovingAgent();
+                var agent = new MovingAgent(0);
 
                 var action = new MoveAction();
                 action.abstractPath = chunkManager.FindAbstractPath(new Vector3I(0, 1, 5), new Vector3I((int)(7.5 * chunkSize.X), 1, 5));

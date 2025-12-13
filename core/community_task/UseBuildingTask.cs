@@ -2,15 +2,15 @@ using System;
 using System.Collections.Generic;
 using Godot;
 
-public class BuildTask : BaseCommunityTask
+public class UseBuildingTask : BaseCommunityTask
 {
     private readonly float MAX_BUILD_DISTANCE = 1.5f;
     // TODO Temporary
     private readonly Vector3I BUILDING_MOVE_OFFSET = new Vector3I(0, 0, 1);
 
-    private Building building;
+    public Building building;
 
-    public BuildTask(Building building)
+    public UseBuildingTask(Building building)
     {
         this.building = building;
     }
@@ -39,24 +39,20 @@ public class BuildTask : BaseCommunityTask
             actions.Add(CreateMoveAction(movingAgent, building.GetPosition()));
         }
 
-        actions.Add(new BuildAction() { building = building });
+        actions.Add(new UseBuildingAction() { building = building, agent = agent });
 
         return actions;
     }
 
     public override bool IsApplicable(IAgent agent)
     {
-        // TODO Evaluate whether the agent can build
+        // TODO Evaluate
         return true;
     }
 
     public override bool IsCompleted()
     {
-        return building.IsBuilt();
-    }
-
-    public override void CompletionAction(CommunityManager communityManager)
-    {
-        communityManager.BuildingBuilt(building);
+        // TODO Think about this
+        return false;
     }
 }

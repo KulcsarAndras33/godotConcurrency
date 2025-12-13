@@ -1,0 +1,8 @@
+---
+Name: "Wood Gatherer"
+Id: 1
+Inputs: []
+Outputs:
+  - ResourceId: 1
+    Amount: 5
+MaxWorkers: 1

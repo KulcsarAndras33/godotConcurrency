@@ -8,6 +8,8 @@ public abstract class BaseCommunityTask : ICommunityTask
 
     public abstract bool IsCompleted();
 
+    public virtual void CompletionAction(CommunityManager communityManager) { }
+
     public virtual float GetPriority()
     {
         return 5;
