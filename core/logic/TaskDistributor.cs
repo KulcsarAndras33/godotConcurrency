@@ -55,15 +55,15 @@ namespace Core.Logic
                 return prio;
             });
 
-            GD.Print(highestPrioTask);
+
             var resPrio = community.resourceTaskHandler.GetPriority();
 
             if (highestPrioTask == null || resPrio > highestPrioTask.GetPriority())
             {
-                GD.Print("Getting task from resource thingy.");
                 highestPrioTask = community.resourceTaskHandler.GetTask(currentDistribution);
             }
 
+            GD.Print(highestPrioTask);
             return highestPrioTask;
         }
     }

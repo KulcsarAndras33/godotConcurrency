@@ -6,12 +6,14 @@ public class Building : IGridObject
     static readonly PackedScene SPRITE_SCENE = GD.Load<PackedScene>("res://assets/BuildingScene.tscn");
 
     private int builtLevel = 0;
-    private readonly int maxBuiltLevel = 100;
+    private readonly int maxBuiltLevel = 50;
     private Node3D node; // This could later be migrated into a detailed state if needed.
     private Vector3I position;
     private readonly int descriptorId;
 
-    // TODO Why not do this in the constructor?
+    public CommunityManager communityManager { get; set; }
+
+    // TODO Investigate doing this in the constructor?
     //      Could solve the issue of building being put down in an abstract chunk (if that's a valid use-case?)
     private void AddBuildingToChunkSystem()
     {
@@ -19,6 +21,27 @@ public class Building : IGridObject
         var chunk = chunkManager.GetChunkByPos(position);
 
         chunk.AddBuilding(this);
+    }
+
+    private void ModifyCommunityStorage(ulong usageTimeout)
+    {
+        var descriptor = GetDescriptor();
+        Storage storage = communityManager.storage;
+
+        foreach (ResourceUsage input in descriptor.Inputs)
+        {
+            var hadEnoughInput = storage.TryRetrieve(input.ResourceTag, input.Amount / 60 / 1000 * usageTimeout);
+            if (!hadEnoughInput)
+            {
+                return;
+            }
+        }
+
+        foreach (ResourceUsage output in descriptor.Outputs)
+        {
+            // The resource amount is always given in resource / minute
+            storage.TryStore(output.ResourceId.Value, output.Amount / 60 / 1000 * usageTimeout);
+        }
     }
 
     /// <summary>
@@ -31,6 +54,7 @@ public class Building : IGridObject
         this.descriptorId = descriptorId;
         ToDetailed();
 
+        this.communityManager = communityManager;
         communityManager.AddBuilding(this);
     }
 
@@ -79,5 +103,10 @@ public class Building : IGridObject
     public BuildingDescriptor GetDescriptor()
     {
         return Library<BuildingDescriptor>.GetInstance().GetDescriptorById(descriptorId);
+    }
+
+    public void Interact(IAgent agent, ulong usageTimeout)
+    {
+        ModifyCommunityStorage(usageTimeout);
     }
 }

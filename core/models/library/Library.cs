@@ -3,6 +3,7 @@ using System.IO;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NodeDeserializers;
 using System;
+using Godot;
 
 namespace core.models.descriptor
 {
@@ -33,6 +34,15 @@ namespace core.models.descriptor
             return deserializer.Deserialize<T>(reader);
         }
 
+        private int DescriptorComparer(IDescriptor a, IDescriptor b)
+        {
+            if (a.Id == b.Id)
+            {
+                throw new Exception($"Descriptors with the same id: {a.Id}");
+            }
+            return a.Id - b.Id;
+        }
+
         public void ParseDescriptors(string path)
         {
             descriptors.Clear();
@@ -41,8 +51,10 @@ namespace core.models.descriptor
             foreach (var filePath in files)
             {
                 T descriptor = ParseDescriptor(filePath);
-                descriptors.Insert(descriptor.Id, descriptor);
+                descriptors.Add(descriptor);
             }
+
+            descriptors.Sort((a, b) => DescriptorComparer(a, b));
         }
 
         public T GetDescriptorById(int id)

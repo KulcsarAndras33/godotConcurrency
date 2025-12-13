@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using core.models.descriptor;
 using Core.Model;
 using Godot;
@@ -17,6 +18,62 @@ namespace Core.Logic
         private int usedCapacity = 0;
 
         private Building buildingToUse = null;
+
+        private void CalculateBuildingOutput(List<ResourceUsage> outputs)
+        {
+            foreach (var output in outputs)
+            {
+                int resourceId = output.ResourceId.Value;
+                if (!resourceUsageById.ContainsKey(resourceId))
+                {
+                    resourceUsageById[resourceId] = 0;
+                }
+                resourceUsageById[resourceId] -= output.Amount;
+
+                var resourceDescriptor = Library<ResourceDescriptor>.GetInstance().GetDescriptorById(resourceId);
+                var resourceTags = resourceDescriptor.Tags;
+
+                // Sub-optimal solution for now
+                bool didAssign = false;
+                foreach (var tag in resourceTags)
+                {
+                    if (resourceUsageByTag.GetValueOrDefault(tag, 0) > 0)
+                    {
+                        resourceUsageByTag[tag] -= output.Amount;
+                        didAssign = true;
+                        break;
+                    }
+                }
+                if (!didAssign)
+                {
+                    var tag = resourceTags.First();
+                    if (!resourceUsageByTag.ContainsKey(tag))
+                    {
+                        resourceUsageByTag[tag] = 0;
+                    }
+                    resourceUsageByTag[tag] -= output.Amount;
+                }
+            }
+        }
+
+        private void CalculateBuildingConsumption(List<ResourceUsage> inputs)
+        {
+            foreach (var input in inputs)
+            {
+                // For now, we will only handle input defined by tags
+                if (input.ResourceId != null)
+                {
+                    return;
+                }
+
+                var tag = input.ResourceTag;
+                if (!resourceUsageByTag.ContainsKey(tag))
+                {
+                    resourceUsageByTag[tag] = 0;
+                }
+                resourceUsageByTag[tag] += input.Amount;
+            }
+        }
 
         public void AddBuildings(IEnumerable<Building> buildings)
         {
@@ -65,14 +122,15 @@ namespace Core.Logic
         {
             // This is just a simple way of determining prio
             //      Prios 10 and 2 are chosen by the Stomak method :)
+
+            // TODO WARNING We will never use a building that has an output resource that's not being used up
             foreach (var usage in resourceUsageByTag)
             {
-                GD.Print("Going through res usages.");
+                GD.Print($"Resource: {usage.Key}, usage: {usage.Value}");
                 var currentBuilding = buildingsByResourceTag.GetAvailableBuilding(usage.Key, buildingUsage);
                 if (currentBuilding != null)
                 {
                     buildingToUse = currentBuilding;
-                    GD.Print($"Set building to use to {buildingToUse}");
                     if (usage.Value > 0)
                     {
                         return 10;
@@ -93,25 +151,10 @@ namespace Core.Logic
             buildingUsage[buildingToUse] += 1;
             usedCapacity += 1;
 
-            foreach (var output in buildingToUse.GetDescriptor().Outputs)
-            {
-                if (output.ResourceId != null)
-                {
-                    if (!resourceUsageById.ContainsKey(output.ResourceId.Value))
-                    {
-                        resourceUsageById[output.ResourceId.Value] = 0;
-                    }
-                    resourceUsageById[output.ResourceId.Value] -= output.Amount;
-                }
-                if (output.ResourceTag != null)
-                {
-                    if (!resourceUsageByTag.ContainsKey(output.ResourceTag))
-                    {
-                        resourceUsageByTag[output.ResourceTag] = 0;
-                    }
-                    resourceUsageByTag[output.ResourceTag] -= output.Amount;
-                }
-            }
+            var descriptor = buildingToUse.GetDescriptor();
+
+            CalculateBuildingOutput(descriptor.Outputs);
+            CalculateBuildingConsumption(descriptor.Inputs);
 
             foreach (var task in distribution.TasksWithWorkforce)
             {

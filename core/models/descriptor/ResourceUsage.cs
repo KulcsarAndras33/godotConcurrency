@@ -13,7 +13,7 @@ namespace core.models.descriptor
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            if (ResourceId == null && ResourceTag == null)
+            if ((ResourceId == null) == (ResourceTag == null))
             {
                 yield return new ValidationResult("Exactly one of 'ResourceId' or 'ResourceTag' must be provided.");
             }

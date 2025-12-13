@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace core.models.descriptor
 {
-    public class BuildingDescriptor : IDescriptor
+    public class BuildingDescriptor : IDescriptor, IValidatableObject
     {
         [Required]
         public string Name { get; set; }
@@ -27,6 +27,17 @@ namespace core.models.descriptor
         public override string ToString()
         {
             return Name;
+        }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            foreach (var output in Outputs)
+            {
+                if (output.ResourceTag != null)
+                {
+                    yield return new ValidationResult("Building output cannot by defined by resource tag.");
+                }
+            }
         }
     }
 }

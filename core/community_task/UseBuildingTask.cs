@@ -39,7 +39,7 @@ public class UseBuildingTask : BaseCommunityTask
             actions.Add(CreateMoveAction(movingAgent, building.GetPosition()));
         }
 
-        actions.Add(new UseBuildingAction() { building = building });
+        actions.Add(new UseBuildingAction() { building = building, agent = agent });
 
         return actions;
     }

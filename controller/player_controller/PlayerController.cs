@@ -88,6 +88,7 @@ namespace Controller
             buildingLibrary.ParseDescriptors("assets/base/buildings");
             agentLibrary.ParseDescriptors("assets/base/agents");
 
+            GD.Print($"Getting building with id: {chosenBuildingId}");
             buildingLabel.Text = $"Current building: {buildingLibrary.GetDescriptorById(chosenBuildingId).Name}";
 
             chunkVisualiser = CHUNK_VISUALISER_SCENE.Instantiate<NaiveChunkVisualiser>();

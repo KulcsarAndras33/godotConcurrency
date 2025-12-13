@@ -3,15 +3,16 @@ public class UseBuildingAction : AgentAction
     private readonly ulong USE_TIMEOUT = 1000;
 
     public Building building;
+    public IAgent agent;
 
     private void UseBuilding()
     {
-        // TODO Actually do something
+        building.Interact(agent, USE_TIMEOUT);
     }
 
     public override bool IsComplete()
     {
-        return building.IsBuilt();
+        return false;
     }
 
     protected override void AbstractNextStep()
