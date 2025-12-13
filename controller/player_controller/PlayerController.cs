@@ -25,7 +25,7 @@ namespace Controller
             string text = "";
             foreach (var res in resources)
             {
-                text += $"{resourceLibrary.GetDescriptorById(res.Key).Name}: {res.Value} ";
+                text += $"{resourceLibrary.GetDescriptorById(res.Key).Name}: {res.Value:000} ";
             }
 
             resourceLabel.Text = text;
@@ -79,6 +79,16 @@ namespace Controller
             }
         }
 
+        private void HandleInput()
+        {
+            if (Input.IsActionJustPressed("B"))
+            {
+                chosenBuildingId++;
+                chosenBuildingId %= buildingLibrary.GetDescriptorCount();
+                buildingLabel.Text = $"Current building: {buildingLibrary.GetDescriptorById(chosenBuildingId).Name}";
+            }
+        }
+
         public override void _Ready()
         {
             resourceLabel = GetNode<Label>("VerticalBox/ResourceLabel");
@@ -88,7 +98,6 @@ namespace Controller
             buildingLibrary.ParseDescriptors("assets/base/buildings");
             agentLibrary.ParseDescriptors("assets/base/agents");
 
-            GD.Print($"Getting building with id: {chosenBuildingId}");
             buildingLabel.Text = $"Current building: {buildingLibrary.GetDescriptorById(chosenBuildingId).Name}";
 
             chunkVisualiser = CHUNK_VISUALISER_SCENE.Instantiate<NaiveChunkVisualiser>();
@@ -103,6 +112,8 @@ namespace Controller
             }
 
             PrintResources();
+
+            HandleInput();
         }
 
         public override void _UnhandledInput(InputEvent @event)

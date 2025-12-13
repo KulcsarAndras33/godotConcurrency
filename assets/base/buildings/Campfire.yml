@@ -1,9 +1,0 @@
----
-Name: "Campfire"
-Id: 1
-Inputs: []
-Outputs:
-  - ResourceId: 0
-    Amount: 5
-MaxWorkers: 1
-SpritePath: ""

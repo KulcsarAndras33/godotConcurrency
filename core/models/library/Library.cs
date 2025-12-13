@@ -66,5 +66,10 @@ namespace core.models.descriptor
 
             return descriptors[id];
         }
+
+        public int GetDescriptorCount()
+        {
+            return descriptors.Count;
+        }
     }
 }

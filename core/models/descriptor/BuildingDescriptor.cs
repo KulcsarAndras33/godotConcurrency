@@ -21,8 +21,7 @@ namespace core.models.descriptor
         [Required]
         public int MaxWorkers { get; set; }
 
-        [DefaultValue("res://assets/base/textures/default_sprite.png")]
-        public string SpritePath { get; set; }
+        public string SpritePath { get; set; } = "res://assets/base/textures/default_sprite.png";
 
         public override string ToString()
         {

@@ -6,6 +6,21 @@ namespace Core.Model
     {
         private readonly Dictionary<T, List<Building>> data = [];
 
+        private bool CanBuildingBeUsed(Building building, Dictionary<Building, int> buildingUsage)
+        {
+            if (!buildingUsage.TryGetValue(building, out int usage))
+            {
+                return true;
+            }
+
+            if (usage < building.GetDescriptor().MaxWorkers)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         public void Add(T key, Building building)
         {
             if (!data.TryGetValue(key, out List<Building> value))
@@ -26,13 +41,34 @@ namespace Core.Model
 
             foreach (var building in buildings)
             {
-                if (!buildingUsage.TryGetValue(building, out int usage))
+                if (CanBuildingBeUsed(building, buildingUsage))
                 {
                     return building;
                 }
-                if (usage < building.GetDescriptor().MaxWorkers)
+            }
+
+            return null;
+        }
+
+        public int GetCount(T key)
+        {
+            if (!data.TryGetValue(key, out List<Building> value))
+            {
+                return 0;
+            }
+            return value.Count;
+        }
+
+        public Building GetAvailableBuilding(Dictionary<Building, int> buildingUsage)
+        {
+            foreach (var buildings in data.Values)
+            {
+                foreach (var building in buildings)
                 {
-                    return building;
+                    if (CanBuildingBeUsed(building, buildingUsage))
+                    {
+                        return building;
+                    }
                 }
             }
 

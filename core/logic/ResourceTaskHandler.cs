@@ -123,10 +123,10 @@ namespace Core.Logic
             // This is just a simple way of determining prio
             //      Prios 10 and 2 are chosen by the Stomak method :)
 
-            // TODO WARNING We will never use a building that has an output resource that's not being used up
             foreach (var usage in resourceUsageByTag)
             {
                 GD.Print($"Resource: {usage.Key}, usage: {usage.Value}");
+                GD.Print($"Assigned buildings: {buildingsByResourceTag.GetCount(usage.Key)}");
                 var currentBuilding = buildingsByResourceTag.GetAvailableBuilding(usage.Key, buildingUsage);
                 if (currentBuilding != null)
                 {
@@ -137,6 +137,8 @@ namespace Core.Logic
                     }
                 }
             }
+
+            buildingToUse = buildingsByResourceTag.GetAvailableBuilding(buildingUsage);
 
             return 2;
         }
@@ -170,7 +172,10 @@ namespace Core.Logic
                 }
             }
 
-            return new UseBuildingTask(buildingToUse);
+            var resultTask = new UseBuildingTask(buildingToUse);
+            buildingToUse = null;
+
+            return resultTask;
         }
 
         public float GetResourceUsage(string tag)
