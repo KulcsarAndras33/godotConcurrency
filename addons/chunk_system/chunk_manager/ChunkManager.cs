@@ -14,8 +14,8 @@ public partial class ChunkManager : Node
     private GridPathFinder gridPathFinder = new();
     private WeightedPathfinder abstractPathfinder = new();
     private ReaderWriterLock abstractPathfinderLock = new();
-    private readonly ChunkSaver chunkSaver = new("testDB");
 
+    public readonly ChunkSaver chunkSaver = new("testDB");
     public PriorityThreadPool threadPool = new(10);
 
     public static ChunkManager GetInstance()

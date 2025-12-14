@@ -2,13 +2,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ChunkSystem.Persistence;
 using Godot;
 
 // TODO Mostly nothing is setup for concurrency currently
 public class Chunk
 {
+    private static readonly int SAVE_LOAD_PRIO = 40;
+
     private int[,,] data;
-    private int[,,] backupData; // THIS IS TEMPORARY it mocks the data being written to file
     private List<IAgent> agents = new();
     private readonly HashSet<Building> buildings = [];
     private readonly SingleTaskExecutor HPFExecutor;
@@ -269,22 +271,8 @@ public class Chunk
     {
         lock (this)
         {
+
             IsDetailed = false;
-            backupData = new int[dimensions.X, dimensions.Y, dimensions.Z];
-
-            // Saving data to backup -> This mocks file usage for now
-            for (int x = 0; x < dimensions.X; x++)
-            {
-                for (int y = 0; y < dimensions.Y; y++)
-                {
-                    for (int z = 0; z < dimensions.Z; z++)
-                    {
-                        backupData[x, y, z] = data[x, y, z];
-                    }
-                }
-            }
-
-            data = null;
 
             foreach (var building in buildings)
             {
@@ -302,21 +290,6 @@ public class Chunk
         lock (this)
         {
             IsDetailed = true;
-            data = new int[dimensions.X, dimensions.Y, dimensions.Z];
-
-            // Loading data from backup -> This mocks file usage for now
-            for (int x = 0; x < dimensions.X; x++)
-            {
-                for (int y = 0; y < dimensions.Y; y++)
-                {
-                    for (int z = 0; z < dimensions.Z; z++)
-                    {
-                        data[x, y, z] = backupData[x, y, z];
-                    }
-                }
-            }
-
-            backupData = null;
 
             foreach (var building in buildings)
             {
@@ -327,5 +300,36 @@ public class Chunk
                 agent.ToDetailed();
             }
         }
+    }
+
+    public void Save()
+    {
+        chunkManager.threadPool.Enqueue(
+            () =>
+            {
+                lock (this)
+                {
+                    chunkManager.chunkSaver.SaveChunk(position, data);
+                }
+            },
+            SAVE_LOAD_PRIO
+        );
+    }
+
+    // WARNING
+    // Position and dimensions shall be defined when calling Load
+    public void Load()
+    {
+        chunkManager.threadPool.Enqueue(
+            () =>
+            {
+                lock (this)
+                {
+                    var record = chunkManager.chunkSaver.LoadChunk(position);
+                    data = record.GetData(dimensions);
+                }
+            },
+            SAVE_LOAD_PRIO
+        );
     }
 }
