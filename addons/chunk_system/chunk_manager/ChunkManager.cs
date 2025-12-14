@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using ChunkSystem.Persistence;
 using Godot;
 
 public partial class ChunkManager : Node
@@ -13,6 +14,7 @@ public partial class ChunkManager : Node
     private GridPathFinder gridPathFinder = new();
     private WeightedPathfinder abstractPathfinder = new();
     private ReaderWriterLock abstractPathfinderLock = new();
+    private readonly ChunkSaver chunkSaver = new("testDB");
 
     public PriorityThreadPool threadPool = new(10);
 
@@ -28,6 +30,7 @@ public partial class ChunkManager : Node
 
         instance = new ChunkManager(dimensions);
         instance.gridPathFinder.isWalkable = instance.IsWalkable;
+
         return instance;
     }
 
