@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ChunkSystem.Persistence;
+using Core.Persistence;
 using Godot;
 
 // TODO Mostly nothing is setup for concurrency currently
@@ -310,6 +311,11 @@ public class Chunk
                 lock (this)
                 {
                     chunkManager.chunkSaver.SaveChunk(position, data);
+
+                    foreach (var building in buildings)
+                    {
+                        building.Save();
+                    }
                 }
             },
             SAVE_LOAD_PRIO

@@ -87,6 +87,14 @@ namespace Controller
                 chosenBuildingId %= buildingLibrary.GetDescriptorCount();
                 buildingLabel.Text = $"Current building: {buildingLibrary.GetDescriptorById(chosenBuildingId).Name}";
             }
+            if (Input.IsActionJustPressed("S"))
+            {
+                GD.Print("Saving");
+                foreach (var chunk in ChunkManager.GetInstance().GetChunks())
+                {
+                    chunk.Save();
+                }
+            }
         }
 
         public override void _Ready()

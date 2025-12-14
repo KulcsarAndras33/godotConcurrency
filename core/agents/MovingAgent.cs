@@ -11,6 +11,7 @@ public partial class MovingAgent : IAgent
 
     public CommunityManager communityManager { get; set; }
     public Chunk CurrentChunk { get; set; }
+    public int Id { get; set; }
 
     public MovingAgent(int descriptorId)
     {
@@ -108,4 +109,15 @@ public partial class MovingAgent : IAgent
     {
         return Library<AgentDescriptor>.GetInstance().GetDescriptorById(descriptorId);
     }
+
+    public void Save()
+    {
+        throw new System.NotImplementedException();
+    }
+
+    public void Load()
+    {
+        throw new System.NotImplementedException();
+    }
+
 }

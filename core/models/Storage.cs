@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using core.models.descriptor;
-using Godot;
 
 public class Storage
 {

@@ -1,4 +1,5 @@
 using core.models.descriptor;
+using Core.Persistence;
 using Godot;
 
 public class Building : IGridObject
@@ -12,9 +13,11 @@ public class Building : IGridObject
     private readonly int descriptorId;
 
     public CommunityManager communityManager { get; set; }
+    public int Id { get; set; }
 
     // TODO Investigate doing this in the constructor?
     //      Could solve the issue of building being put down in an abstract chunk (if that's a valid use-case?)
+
     private void AddBuildingToChunkSystem()
     {
         var chunkManager = ChunkManager.GetInstance();
@@ -109,4 +112,16 @@ public class Building : IGridObject
     {
         ModifyCommunityStorage(usageTimeout);
     }
+
+    public void Save()
+    {
+        var buildingSaver = BuildingSaver.GetInstance();
+        buildingSaver.SaveBuilding(communityManager.GetId(), Id, position, descriptorId, builtLevel);
+    }
+
+    public void Load()
+    {
+        throw new System.NotImplementedException();
+    }
+
 }

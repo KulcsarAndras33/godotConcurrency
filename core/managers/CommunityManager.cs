@@ -6,6 +6,9 @@ using Godot;
 
 public partial class CommunityManager : Node
 {
+    private int id = 1; // Default value is TEMPORARY and for testing purposes
+    private int objectIdCounter = 1;
+    private readonly object idLock = new();
     private Random random = new();
     private HashSet<IAgent> activeAgents = [];
     private HashSet<IAgent> agents = [];
@@ -29,6 +32,10 @@ public partial class CommunityManager : Node
 
     public void AddAgent(IAgent agent)
     {
+        lock (idLock)
+        {
+            agent.Id = objectIdCounter++;
+        }
         agent.communityManager = this;
         activeAgents.Add(agent);
         agents.Add(agent);
@@ -37,6 +44,11 @@ public partial class CommunityManager : Node
 
     public void AddBuilding(Building building)
     {
+        lock (idLock)
+        {
+            building.Id = objectIdCounter++;
+        }
+
         buildings.Add(building);
     }
 
@@ -119,5 +131,10 @@ public partial class CommunityManager : Node
     public HashSet<IAgent> GetAgents()
     {
         return agents;
+    }
+
+    public int GetId()
+    {
+        return id;
     }
 }
