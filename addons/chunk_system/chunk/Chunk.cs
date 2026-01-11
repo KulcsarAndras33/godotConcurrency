@@ -310,11 +310,16 @@ public class Chunk
             {
                 lock (this)
                 {
-                    chunkManager.chunkSaver.SaveChunk(position, data);
+                    chunkManager.chunkSaver.SaveChunk(position, data, buildings, agents);
 
                     foreach (var building in buildings)
                     {
                         building.Save();
+                    }
+
+                    foreach (var agent in agents)
+                    {
+                        agent.Save();
                     }
                 }
             },
@@ -333,6 +338,8 @@ public class Chunk
                 {
                     var record = chunkManager.chunkSaver.LoadChunk(position);
                     data = record.GetData(dimensions);
+
+
                 }
             },
             SAVE_LOAD_PRIO

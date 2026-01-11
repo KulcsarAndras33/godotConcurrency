@@ -1,11 +1,13 @@
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using core.models.descriptor;
+using Core.Persistence;
 using Godot;
 
 public partial class MovingAgent : IAgent
 {
-    private readonly int descriptorId;
+    private int descriptorId;
     private IMovingState currentState;
     private List<AgentAction> currentActions = [];
 
@@ -112,12 +114,17 @@ public partial class MovingAgent : IAgent
 
     public void Save()
     {
-        throw new System.NotImplementedException();
+        GD.Print($"Saving moving agent: {communityManager.GetId()} - {Id}");
+        Vector3 pos = currentState.GetPostion();
+        Vector3I coords = new((int)pos.X, (int)pos.Y, (int)pos.Z);
+        AgentSaver.GetInstance().SaveAgent(communityManager.GetId(), Id, coords, descriptorId);
     }
 
     public void Load()
     {
-        throw new System.NotImplementedException();
+        var record = AgentSaver.GetInstance().LoadAgent(communityManager.GetId(), Id);
+        currentState.SetPostion(new Vector3(record.X, record.Y, record.Z));
+        descriptorId = record.DescriptorId;
     }
 
 }

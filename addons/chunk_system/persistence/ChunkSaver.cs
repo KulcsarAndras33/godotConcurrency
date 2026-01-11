@@ -3,6 +3,7 @@ using Dapper;
 using Godot;
 using System;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace ChunkSystem.Persistence
 {
@@ -14,6 +15,8 @@ namespace ChunkSystem.Persistence
                 Y INTEGER,
                 Z INTEGER,
                 Data BLOB,
+                Buildings BLOB,
+                Agents BLOB,
                 PRIMARY KEY (X, Y, Z)
             );";
 
@@ -22,9 +25,9 @@ namespace ChunkSystem.Persistence
         ";
 
         private static readonly string INSERT_COMMAND = @$"INSERT OR REPLACE INTO {TABLE_NAME}
-            (X, Y, Z, Data)
+            (X, Y, Z, Data, Buildings, Agents)
             VALUES
-            (@X, @Y, @Z, @Data)
+            (@X, @Y, @Z, @Data, @Buildings, @Agents)
         ";
 
         private readonly string pathToDBFile;
@@ -47,10 +50,10 @@ namespace ChunkSystem.Persistence
             SetupChunkTable();
         }
 
-        public void SaveChunk(Vector3I coords, int[,,] data)
+        public void SaveChunk(Vector3I coords, int[,,] data, IEnumerable<Building> buildings, List<IAgent> agents)
         {
             GD.Print($"Saving chunk at {coords}");
-            ChunkRecord record = ChunkRecord.FromChunk(coords, data);
+            ChunkRecord record = ChunkRecord.FromChunk(coords, data, buildings, agents);
             RunWithConnection((conn) => conn.Execute(INSERT_COMMAND, record));
         }
 

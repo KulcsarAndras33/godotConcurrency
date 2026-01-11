@@ -10,7 +10,7 @@ public class Building : IGridObject
     private readonly int maxBuiltLevel = 50;
     private Node3D node; // This could later be migrated into a detailed state if needed.
     private Vector3I position;
-    private readonly int descriptorId;
+    private int descriptorId;
 
     public CommunityManager communityManager { get; set; }
     public int Id { get; set; }
@@ -115,13 +115,17 @@ public class Building : IGridObject
 
     public void Save()
     {
+        GD.Print($"Saving building: {communityManager.GetId()} - {Id}");
         var buildingSaver = BuildingSaver.GetInstance();
         buildingSaver.SaveBuilding(communityManager.GetId(), Id, position, descriptorId, builtLevel);
     }
 
     public void Load()
     {
-        throw new System.NotImplementedException();
+        var record = BuildingSaver.GetInstance().LoadBuilding(communityManager.GetId(), Id);
+        descriptorId = record.DescriptorId;
+        position = new Vector3I(record.X, record.Y, record.Z);
+        builtLevel = record.BuiltLevel;
     }
 
 }

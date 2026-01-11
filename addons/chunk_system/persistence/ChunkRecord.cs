@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Data;
 using System.IO;
 using System.Linq;
 using Godot;
@@ -16,8 +18,54 @@ namespace ChunkSystem.Persistence
         [Key]
         public int Z { get; set; }
         public byte[] Data { get; set; }
+        public byte[] Buildings { get; set; }
+        public byte[] Agents { get; set; }
 
-        public static ChunkRecord FromChunk(Vector3I coords, int[,,] data)
+        private static byte[] IntArrayToBlob(int[] array)
+        {
+            using MemoryStream m = new();
+            using BinaryWriter writer = new(m);
+
+            foreach (var value in array)
+            {
+                writer.Write(value);
+            }
+
+            writer.Flush();
+            return m.ToArray();
+        }
+
+        private static byte[] GetBuildingBlob(IEnumerable<Building> buildings)
+        {
+            // Times 2 since they have a Community Id and an Id
+            int[] references = new int[buildings.Count() * 2];
+
+            int i = 0;
+            foreach (var building in buildings)
+            {
+                references[i++] = building.communityManager.GetId();
+                references[i++] = building.Id;
+            }
+
+            return IntArrayToBlob(references);
+        }
+
+        private static byte[] GetAgentBlob(List<IAgent> agents)
+        {
+            // Times 2 since they have a Community Id and an Id
+            int[] references = new int[agents.Count * 2];
+
+            int i = 0;
+            foreach (var agent in agents)
+            {
+                references[i++] = agent.communityManager.GetId();
+                references[i++] = agent.Id;
+            }
+
+            return IntArrayToBlob(references);
+        }
+
+        public static ChunkRecord FromChunk(Vector3I coords, int[,,] data, IEnumerable<Building> buildings, List<IAgent> agents)
         {
             ChunkRecord record = new()
             {
@@ -28,16 +76,9 @@ namespace ChunkSystem.Persistence
 
             var flatData = data.Cast<int>().ToArray();
 
-            using (MemoryStream m = new())
-            {
-                using BinaryWriter writer = new(m);
-                foreach (var value in flatData)
-                {
-                    writer.Write(value);
-                }
-                writer.Flush();
-                record.Data = m.ToArray();
-            }
+            record.Data = IntArrayToBlob(flatData);
+            record.Buildings = GetBuildingBlob(buildings);
+            record.Agents = GetAgentBlob(agents);
 
             return record;
         }

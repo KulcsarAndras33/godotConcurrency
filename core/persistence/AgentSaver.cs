@@ -4,23 +4,23 @@ using Godot;
 
 namespace Core.Persistence
 {
-    public class BuildingSaver(string pathToDBFile) : SaverBase(pathToDBFile)
+    public class AgentSaver(string pathToDBFile) : SaverBase(pathToDBFile)
     {
 
-        private static BuildingSaver Instance = null;
+        private static AgentSaver Instance = null;
 
 
-        public static BuildingSaver GetInstance()
+        public static AgentSaver GetInstance()
         {
             // TODO FIXME Magic string
-            Instance ??= new BuildingSaver("testDB");
+            Instance ??= new AgentSaver("testDB");
 
             return Instance;
         }
 
-        public void SaveBuilding(int communityId, int id, Vector3I coords, int descriptorId, int builtLevel)
+        public void SaveAgent(int communityId, int id, Vector3I coords, int descriptorId)
         {
-            BuildingRecord record = new()
+            AgentRecord record = new()
             {
                 CommunityId = communityId,
                 Id = id,
@@ -28,16 +28,15 @@ namespace Core.Persistence
                 Y = coords.Y,
                 Z = coords.Z,
                 DescriptorId = descriptorId,
-                BuiltLevel = builtLevel
             };
             RunWithConnection((conn) => conn.Execute(INSERT_COMMAND, record));
         }
 
-        public BuildingRecord LoadBuilding(int communityId, int id)
+        public AgentRecord LoadAgent(int communityId, int id)
         {
-            BuildingRecord record = null;
+            AgentRecord record = null;
             RunWithConnection((conn) =>
-            record = conn.Query<BuildingRecord>(QUERY_COMMAND, new { CommunityId = communityId, Id = id })
+            record = conn.Query<AgentRecord>(QUERY_COMMAND, new { CommunityId = communityId, Id = id })
             .First());
 
             return record;
@@ -45,12 +44,12 @@ namespace Core.Persistence
 
         protected override string[] GetFields()
         {
-            return ["CommunityId", "Id", "X", "Y", "Z", "DescriptorId", "BuiltLevel"];
+            return ["CommunityId", "Id", "X", "Y", "Z", "DescriptorId"];
         }
 
         protected override string[] GetTypes()
         {
-            return ["INTEGER", "INTEGER", "INTEGER", "INTEGER", "INTEGER", "INTEGER", "INTEGER"];
+            return ["INTEGER", "INTEGER", "INTEGER", "INTEGER", "INTEGER", "INTEGER"];
         }
 
         protected override string[] GetKeys()
@@ -60,7 +59,7 @@ namespace Core.Persistence
 
         protected override string GetTableName()
         {
-            return "Buildings";
+            return "Agents";
         }
     }
 }
