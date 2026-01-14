@@ -126,5 +126,4 @@ public partial class MovingAgent : IAgent
         currentState.SetPostion(new Vector3(record.X, record.Y, record.Z));
         descriptorId = record.DescriptorId;
     }
-
 }

@@ -261,6 +261,11 @@ public class Chunk
         agents.Remove(agent);
     }
 
+    public List<IAgent> GetAgents()
+    {
+        return agents;
+    }
+
     public void AddBuilding(Building building)
     {
         // This was written when data == 1 was walkable, everything else not walkable.

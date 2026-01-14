@@ -75,6 +75,24 @@ public partial class ChunkManager : Node
         return chunks.GetValueOrDefault(chunkPos, null);
     }
 
+    public List<Chunk> GetNeighborChunks(Chunk chunk)
+    {
+        Vector3I pos = chunk.position;
+        List<Chunk> result = [];
+
+        int[][] offsets = [[0, 0, 1], [0, 0, -1], [1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0]];
+
+        foreach (var offset in offsets)
+        {
+            if (chunks.TryGetValue(new Vector3I(pos.X + offset[0], pos.Y + offset[1], pos.Z + offset[2]), out Chunk currChunk))
+            {
+                result.Add(currChunk);
+            }
+        }
+
+        return result;
+    }
+
     public int GetDataByPos(Vector3I pos)
     {
         Chunk chunk = GetChunkByPos(pos);

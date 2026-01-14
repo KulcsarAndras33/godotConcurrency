@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Godot;
 
 public class PriorityThreadPool : IDisposable
 {
@@ -11,6 +12,8 @@ public class PriorityThreadPool : IDisposable
     private readonly object _lock = new();
     private readonly AutoResetEvent _taskAvailable = new(false);
     private bool _isRunning = true;
+    private const int LOG_FREQUENCY = 10;
+    private int enqueueSinceLastLog = 0;
 
     public PriorityThreadPool(int workerCount)
     {
@@ -34,6 +37,13 @@ public class PriorityThreadPool : IDisposable
         {
             _taskQueue.Enqueue(new Action(task), priority);
             _taskAvailable.Set(); // Signal that a task is available
+
+            enqueueSinceLastLog++;
+            if (enqueueSinceLastLog >= LOG_FREQUENCY)
+            {
+                enqueueSinceLastLog = 0;
+                GD.Print($"THREADPOOL QUEUE LENGTH: {_taskQueue.Count}");
+            }
         }
     }
 

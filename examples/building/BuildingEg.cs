@@ -51,6 +51,7 @@ namespace Example
                 var agent = new MovingAgent(0);
                 pathDrawer.SetAgent(agent);
                 communityManager.AddAgent(agent);
+                chunkManager.GetChunkByPos(new Vector3I(0, 1, 0)).AddAgent(agent);
             }
 
             playerController = GetNode<PlayerController>("Camera3D/PlayerController");
