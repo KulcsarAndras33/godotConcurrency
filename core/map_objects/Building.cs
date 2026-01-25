@@ -33,6 +33,7 @@ public class Building : IGridObject
 
         foreach (ResourceUsage input in descriptor.Inputs)
         {
+
             var hadEnoughInput = storage.TryRetrieve(input.ResourceTag, input.Amount / 60 / 1000 * usageTimeout);
             if (!hadEnoughInput)
             {
@@ -43,6 +44,7 @@ public class Building : IGridObject
         foreach (ResourceUsage output in descriptor.Outputs)
         {
             // The resource amount is always given in resource / minute
+            GD.Print(output.Amount / 60 / 1000 * usageTimeout);
             storage.TryStore(output.ResourceId.Value, output.Amount / 60 / 1000 * usageTimeout);
         }
     }

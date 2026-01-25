@@ -19,6 +19,8 @@ namespace Core.Logic
 
         private Building buildingToUse = null;
 
+        public float FoodConsumption { get; private set; }
+
         private void CalculateBuildingOutput(List<ResourceUsage> outputs)
         {
             foreach (var output in outputs)
@@ -28,6 +30,7 @@ namespace Core.Logic
                 {
                     resourceUsageById[resourceId] = 0;
                 }
+                GD.Print($"Changing resource usage for {resourceId} by {output.Amount}");
                 resourceUsageById[resourceId] -= output.Amount;
 
                 var resourceDescriptor = Library<ResourceDescriptor>.GetInstance().GetDescriptorById(resourceId);
@@ -107,15 +110,22 @@ namespace Core.Logic
             resourceUsageByTag.Clear();
             buildingUsage.Clear();
             usedCapacity = 0;
-
-            resourceUsageByTag["Food"] = 0;
+            FoodConsumption = 0;
 
             foreach (var agent in community.GetAgents())
             {
-                resourceUsageByTag["Food"] += agent.GetDescriptor().FoodConsumption;
+                FoodConsumption += agent.GetDescriptor().FoodConsumption;
             }
+            resourceUsageByTag["Food"] = FoodConsumption;
 
-            GD.Print($"Current food usage: {resourceUsageByTag["Food"]}");
+            if (!community.storage.GetIdForTag("Food", out int foodId))
+            {
+                GD.PushWarning($"No food found for community {community.GetId()}");
+            }
+            else
+            {
+                resourceUsageById[foodId] = FoodConsumption;
+            }
         }
 
         public float GetPriority()
@@ -131,8 +141,9 @@ namespace Core.Logic
                 if (currentBuilding != null)
                 {
                     buildingToUse = currentBuilding;
-                    if (usage.Value > 0)
+                    if (usage.Value > 0.01)
                     {
+                        GD.Print("Running out, IMPORTANT!");
                         return 10;
                     }
                 }
@@ -187,6 +198,11 @@ namespace Core.Logic
         {
             GD.Print($"Capacity: Total: {buildingCapacity}, Used: {usedCapacity}");
             return usedCapacity < buildingCapacity;
+        }
+
+        public Dictionary<int, float> GetTotalResourceUsageById()
+        {
+            return resourceUsageById;
         }
     }
 }

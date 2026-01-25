@@ -10,4 +10,5 @@ public interface IAgent : IGridObject
     void SetActions(List<AgentAction> action);
     AgentDescriptor GetDescriptor();
     Vector3 GetPosition();
+    Chunk GetChunk();
 }

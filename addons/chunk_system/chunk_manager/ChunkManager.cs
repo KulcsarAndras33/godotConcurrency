@@ -47,6 +47,14 @@ public partial class ChunkManager : Node
         chunks[position] = new Chunk(dimensions, position, this);
     }
 
+    public void RemoveChunk(Chunk chunk)
+    {
+        if (!chunks.Remove(chunk.position))
+        {
+            GD.PushWarning("Trying to remove chunk that does not exist in ChunkManager");
+        }
+    }
+
     public void TransformChunks(Action<int[,,]> transformer)
     {
         foreach (var chunk in chunks.Values)

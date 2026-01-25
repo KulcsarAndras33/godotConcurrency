@@ -34,6 +34,7 @@ namespace Core.Logic
                 }
 
                 result.TasksWithWorkforce[currentTask] += currentWorkforce;
+                // TODO resource usage for player tasks
                 remainingWorkforce -= currentWorkforce;
             }
 

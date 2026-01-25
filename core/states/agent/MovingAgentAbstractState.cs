@@ -74,4 +74,9 @@ public class MovingAgentAbstractState : IMovingState
     {
         agent.communityManager.NotifyNoAction();
     }
+
+    public void Dispose()
+    {
+    }
+
 }

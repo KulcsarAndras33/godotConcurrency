@@ -326,6 +326,8 @@ public class Chunk
                     {
                         agent.Save();
                     }
+
+                    chunkManager.RemoveChunk(this);
                 }
             },
             SAVE_LOAD_PRIO

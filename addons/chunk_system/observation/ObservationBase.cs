@@ -30,10 +30,8 @@ namespace ChunkSystem.Observation
             {
                 Chunk currChunk = toBeChecked.Dequeue();
                 checkedChunks.Add(currChunk);
-                GD.Print($"Checking chunk at {currChunk.position}");
 
                 var agents = currChunk.GetAgents();
-                GD.Print($"There are {agents.Count} agents in this chunk");
                 var inRangeAgents = agents.Where(IsInRange);
                 if (agentFilter != null)
                 {

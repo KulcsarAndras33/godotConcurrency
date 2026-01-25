@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using core.models.descriptor;
 using Core.Persistence;
@@ -126,4 +125,10 @@ public partial class MovingAgent : IAgent
         currentState.SetPostion(new Vector3(record.X, record.Y, record.Z));
         descriptorId = record.DescriptorId;
     }
+
+    public Chunk GetChunk()
+    {
+        return CurrentChunk;
+    }
+
 }

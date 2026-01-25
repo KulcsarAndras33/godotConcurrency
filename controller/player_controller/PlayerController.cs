@@ -78,6 +78,7 @@ namespace Controller
                     chunkVisualiser.Create(ChunkManager.GetInstance());
                 }
             }
+            chunkVisualiser.Create(ChunkManager.GetInstance());
         }
 
         private void HandleInput()
@@ -91,10 +92,7 @@ namespace Controller
             if (Input.IsActionJustPressed("S"))
             {
                 GD.Print("Saving");
-                foreach (var chunk in ChunkManager.GetInstance().GetChunks())
-                {
-                    chunk.Save();
-                }
+                currentCommunity.TrySave();
             }
         }
 

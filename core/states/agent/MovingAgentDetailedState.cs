@@ -83,4 +83,8 @@ public class MovingAgentDetailedState : IMovingState
         agent.communityManager.NotifyNoAction();
     }
 
+    public void Dispose()
+    {
+        node.QueueFree();
+    }
 }

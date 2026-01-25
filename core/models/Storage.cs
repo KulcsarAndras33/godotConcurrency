@@ -97,4 +97,28 @@ public class Storage
     {
         return resources;
     }
+
+    public float GetFreeSpace()
+    {
+        return capacity - currentAmount;
+    }
+
+    public bool GetIdForTag(string tag, out int id)
+    {
+        id = -1;
+        foreach (var entry in resources)
+        {
+            if (entry.Value < 1)
+            {
+                return false;
+            }
+            if (resourceLibrary.GetDescriptorById(entry.Key).Tags.Contains(tag))
+            {
+                id = entry.Key;
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
